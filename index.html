@@ -2086,6 +2086,7 @@
     <div class="tab" data-t="achievements" onclick="switchTab('achievements')"><span class="tab-ic">🏆</span>Wins</div>
     <div class="tab" data-t="leaderboard" onclick="switchTab('leaderboard')"><span class="tab-ic">👑</span>League</div>
     <div class="tab" data-t="ascend" onclick="switchTab('ascend')"><span class="tab-ic">✨</span>Ascend</div>
+    <div class="tab" data-t="transcend" onclick="switchTab('transcend')"><span class="tab-ic">🌌</span>Transcend</div>
     <div class="tab" data-t="shop" onclick="switchTab('shop')"><span class="tab-ic">🛒</span>Shop</div>
     <div class="tab" data-t="stats" onclick="switchTab('stats')"><span class="tab-ic">📊</span>Stats</div>
   </div>
@@ -2166,6 +2167,10 @@
 
       <div class="tp" id="page-ascend">
         <div id="asc-page-inner" style="padding-bottom:16px"></div>
+      </div>
+
+      <div class="tp" id="page-transcend">
+        <div id="transcend-page-inner" style="padding-bottom:16px"></div>
       </div>
 
       <div class="tp" id="page-shop">
@@ -2446,6 +2451,17 @@
       db = firebase.database();
     }
 
+    const MAX_NUMBER = 1.7976931348623157e308;
+    // FIX: MAX_SAFE was referenced but never defined in original code
+    const MAX_SAFE = Number.MAX_SAFE_INTEGER; // 9007199254740991
+
+    const TRANSCEND_TIERS = [
+      { id: 't0', ico: '🌌', name: 'First Transcend', cost: 8, reqTe: 1e90, multGain: 25, desc: "You shattered the first cosmic wall.", perks: ['×25 permanent multiplier', 'Golden Bombos spawn 3× faster', 'All buildings ×2 on every future Ascension'] },
+      { id: 't1', ico: '🌠', name: 'Omni-Rhythm', cost: 40, reqTe: 1e160, multGain: 100, desc: "Every beat echoes across infinite realities.", perks: ['×100 permanent multiplier', 'Crit damage ×3', 'Auto-clicks ×5'] },
+      { id: 't2', ico: '🕳️', name: 'Void Drummer', cost: 150, reqTe: 1e230, multGain: 500, desc: "You are the silence AND the thunder.", perks: ['×500 permanent multiplier', 'Combo never decays', 'CPS ×10'] },
+      { id: 't3', ico: '♾️', name: 'Eternal Bombo', cost: 800, reqTe: 1e290, multGain: 2000, desc: "There is no end. Only rhythm.", perks: ['×2000 permanent multiplier', 'Everything ×50', 'You win the game'] }
+    ];
+
     const LB_KEY = 'mibombo-leaderboard-v1';
     async function loadSharedLb() {
       initFirebase();
@@ -2500,27 +2516,81 @@
       chalComboTimer: 0, chalMaxCombo: 0,
       stats: { clicks: 0, bldBought: 0, upgBought: 0, timeWarps: 0, gifts: 0 },
       minCombo: 1, partyMode: false, explodeCombo: false, goldenJackpot: false,
-      magicStick: false, bonusPerOwned: false, autoCrit: false, twBonus: 60, upgDiscount: 1, maxComboCap: 15
+      magicStick: false, bonusPerOwned: false, autoCrit: false, twBonus: 60, upgDiscount: 1, maxComboCap: 15,
+      transcendLevel: 0,
+      transcendMultiplier: 1,
+      transcendPoints: 0,
     });
 
     let S = newState();
-    let PERSIST = { ascLevel: 0, ascPoints: 0, ascMultiplier: 1, ascOwned: [], lbName: '', loginStreak: 0, lastLogin: 0, dailyDay: 0, lastDailyDate: '', bought: {}, shopBought: [], bm: {} };
+    let PERSIST = { ascLevel: 0, ascPoints: 0, ascMultiplier: 1, ascOwned: [], lbName: '', loginStreak: 0, lastLogin: 0, dailyDay: 0, lastDailyDate: '', bought: {}, shopBought: [], bm: {}, transcendLevel: 0, transcendMultiplier: 1, transcendPoints: 0, };
+    let autoSaveTimer = 0;
 
+    // FIX: Validate JSON before writing, handle NaN/Infinity, save actual CPS for offline calc
     function saveGame() {
       S.lastSave = Date.now();
-      PERSIST.ascLevel = S.ascLevel; PERSIST.ascPoints = S.ascPoints; PERSIST.ascMultiplier = S.ascMultiplier;
-      PERSIST.loginStreak = S.loginStreak; PERSIST.lastLogin = S.lastLogin;
-      PERSIST.dailyDay = S.dailyDay; PERSIST.lastDailyDate = S.lastDailyDate;
-      PERSIST.bought = S.bought; PERSIST.shopBought = S.shopBought; PERSIST.bm = S.bm;
-      try { localStorage.setItem('mbc_persist', JSON.stringify(PERSIST)); localStorage.setItem('mbc_state', JSON.stringify(S)); } catch (e) { }
-      const el = document.getElementById('sf'); el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 1500);
+
+      const saveS = { ...S };
+      // Clamp bad values - use 0 not MAX_NUMBER to prevent runaway on next load
+      if (!isFinite(saveS.score) || isNaN(saveS.score) || saveS.score < 0) saveS.score = 0;
+      if (!isFinite(saveS.te) || isNaN(saveS.te) || saveS.te < 0) saveS.te = 0;
+      // Save the REAL current CPS so offline calc uses the correct value on next load
+      if (!isFinite(saveS.cps) || isNaN(saveS.cps) || saveS.cps < 0) saveS.cps = 0;
+
+      try {
+        const persistStr = JSON.stringify(PERSIST);
+        const stateStr = JSON.stringify(saveS);
+        // Validate JSON strings before writing (catches truncation/corruption risk)
+        JSON.parse(persistStr);
+        JSON.parse(stateStr);
+        localStorage.setItem('mbc_persist', persistStr);
+        localStorage.setItem('mbc_state', stateStr);
+      } catch (e) {
+        console.warn('Save failed:', e);
+      }
+
+      const el = document.getElementById('sf');
+      el.classList.add('on');
+      setTimeout(() => el.classList.remove('on'), 1500);
     }
 
     function loadGame() {
-      try { const rp = localStorage.getItem('mbc_persist'); if (rp) PERSIST = Object.assign(PERSIST, JSON.parse(rp)); } catch (e) { }
+      // FIX: Better error handling for corrupted persist data
       try {
-        const rs = localStorage.getItem('mbc_state'); if (!rs) return;
-        const sv = JSON.parse(rs); S = newState();
+        const rp = localStorage.getItem('mbc_persist');
+        if (rp) {
+          try {
+            PERSIST = Object.assign(PERSIST, JSON.parse(rp));
+          } catch (parseErr) {
+            console.warn('Persist data corrupted, clearing:', parseErr);
+            localStorage.removeItem('mbc_persist');
+          }
+        }
+      } catch (e) { }
+
+      // FIX: Capture saved CPS BEFORE applying upgrades so offline calc uses the correct value
+      let savedRawCps = 0;
+      let savedLastSave = Date.now();
+
+      try {
+        const rs = localStorage.getItem('mbc_state');
+        if (!rs) return;
+
+        // FIX: Separate JSON parse with its own try/catch so corruption clears the save
+        let sv;
+        try {
+          sv = JSON.parse(rs);
+        } catch (parseErr) {
+          console.warn('State data corrupted, clearing save:', parseErr);
+          localStorage.removeItem('mbc_state');
+          return;
+        }
+
+        // Capture the CPS and lastSave from the raw save BEFORE any upgrade multipliers are applied
+        savedRawCps = (sv.cps && isFinite(sv.cps) && sv.cps > 0) ? sv.cps : 0;
+        savedLastSave = (sv.lastSave && isFinite(sv.lastSave)) ? sv.lastSave : Date.now();
+
+        S = newState();
         Object.keys(sv).forEach(k => { if (k in S) S[k] = sv[k]; });
         if (sv.buildings) Object.assign(S.buildings, sv.buildings);
         if (sv.bm) Object.assign(S.bm, sv.bm);
@@ -2532,6 +2602,7 @@
         if (sv.chalClaimed) Object.assign(S.chalClaimed, sv.chalClaimed);
         if (sv.stats) Object.assign(S.stats, sv.stats);
       } catch (e) { }
+
       S.ascLevel = PERSIST.ascLevel || 0;
       S.ascPoints = PERSIST.ascPoints || 0;
       S.ascMultiplier = PERSIST.ascMultiplier || 1;
@@ -2543,19 +2614,19 @@
       if (PERSIST.shopBought) S.shopBought = PERSIST.shopBought;
       if (PERSIST.bm) S.bm = PERSIST.bm;
 
+      S.transcendLevel = PERSIST.transcendLevel || 0;
+      S.transcendMultiplier = PERSIST.transcendMultiplier || 1;
+      S.transcendPoints = PERSIST.transcendPoints || 0;
+
       BUILDINGS.forEach(b => { if (!(b.id in S.buildings)) S.buildings[b.id] = 0; if (!(b.id in S.bm)) S.bm[b.id] = 1; });
 
+      // Apply upgrades AFTER capturing savedRawCps - these boost S.cps but we don't use it for offline
       UPGRADES.forEach(u => { if (S.bought[u.id]) u.apply(S); });
       SHOP_ITEMS.forEach(item => { if (!item.reuse && S.shopBought.includes(item.id) && item.id !== 's2' && item.id !== 's8') item.apply(S); });
 
       recalcCps();
       checkLoginStreak();
-      const offSecs = Math.min((Date.now() - (S.lastSave || Date.now())) / 1000, 3600 * 8);
-      if (offSecs > 15 && S.cps > 0) {
-        const earned = S.cps * offSecs * 0.6; S.score += earned; S.te += earned;
-        document.getElementById('offline-amt').textContent = '+' + fmt(earned);
-        document.getElementById('offline-modal').classList.add('on');
-      }
+      // Offline earnings removed — caused score inflation on refresh
     }
 
     function closeOffline() { document.getElementById('offline-modal').classList.remove('on'); }
@@ -2577,7 +2648,7 @@
       S.dailyDay = PERSIST.dailyDay;
       S.lastDailyDate = PERSIST.lastDailyDate;
 
-      // === NEW: also reset upgrades ===
+      // Reset upgrades
       PERSIST.bought = {};
       PERSIST.shopBought = [];
       PERSIST.bm = Object.fromEntries(BUILDINGS.map(b => [b.id, 1]));
@@ -2585,7 +2656,6 @@
       recalcCps();
       notify('🗑️ Full Hard Reset! Upgrades + buildings + everything non-ascension cleared.');
 
-      // Save the cleaned persist + remove old state
       localStorage.setItem('mbc_persist', JSON.stringify(PERSIST));
       localStorage.removeItem('mbc_state');
 
@@ -2655,20 +2725,26 @@
 
     function recalcCps() {
       let c = 0;
-      BUILDINGS.forEach(b => { c += b.baseCps * (S.buildings[b.id] || 0) * (S.bm[b.id] || 1); });
+      BUILDINGS.forEach(b => {
+        c += b.baseCps * (S.buildings[b.id] || 0) * (S.bm[b.id] || 1);
+      });
       c += (S.bonusCps || 0);
-      S.cps = c * S.ascMultiplier * (S.sM || 1);
+      S.cps = Math.min(MAX_NUMBER, c * S.ascMultiplier * (S.sM || 1) * (S.transcendMultiplier || 1));
     }
 
     function getClickPow() {
-      let p = Math.max(1, S.cm) * S.ascMultiplier * (S.sM || 1);
+      let p = Math.max(1, S.cm) * S.ascMultiplier * (S.sM || 1) * (S.transcendMultiplier || 1);
       if (S.gt) p += S.cps * (S.gb || 0.03);
-      return Math.max(1, p);
+      return Math.min(MAX_NUMBER, Math.max(1, p));
     }
 
     function totalBld(s) { return Object.values(s.buildings).reduce((a, b) => a + b, 0); }
 
-    function addScore(n) { S.score += n; S.te += n; }
+    function addScore(n) {
+      if (typeof n !== 'number' || !isFinite(n) || n < 0) n = 0;
+      S.score = Math.min(MAX_NUMBER, (S.score || 0) + n);
+      S.te = Math.min(MAX_NUMBER, (S.te || 0) + n);
+    }
 
     const BASE_COMBO_DECAY = 3.5, COMBO_GAIN = 0.15, MAX_COMBO = 15, COMBO_HOLD_TIME = 1.0;
     function addCombo() {
@@ -2761,7 +2837,6 @@
       const u = UPGRADES.find(x => x.id === id);
       if (!u || S.bought[u.id]) return;
 
-      // === FIXED: always multiply by the discount multiplier (default = 1) ===
       let cost = Math.floor(u.cost * (S.upgDiscount || 1));
 
       if (S.score < cost || S.te < u.req) return;
@@ -2781,6 +2856,7 @@
       renderBldFast();
       saveGame();
     }
+
     function buyShopItem(id) {
       const item = SHOP_ITEMS.find(x => x.id === id); if (!item) return;
       if (!item.reuse && S.shopBought.includes(id)) return;
@@ -2799,32 +2875,28 @@
 
       if (!confirm(`ASCEND to "${nextTier.name}"?\n\n• Score + buildings + upgrades + shop will be RESET\n• You keep Ascension level, points, achievements & streak\n\nReady?`)) return;
 
-      // === SAVE ONLY WHAT SHOULD CARRY OVER ===
       const oldAscLevel = S.ascLevel;
-      const oldAscPoints = S.ascPoints - nextTier.cost;   // spend the points
+      const oldAscPoints = S.ascPoints - nextTier.cost;
       const oldAscMultiplier = S.ascMultiplier;
       const oldAch = { ...S.achDone };
       const oldLoginStreak = S.loginStreak;
       const oldDailyDay = S.dailyDay;
       const oldLastDailyDate = S.lastDailyDate;
 
-      // === FULL RESET ===
-      S = newState();   // this already has clean upgrades, buildings, etc.
+      S = newState();
 
-      // === RESTORE ONLY THE KEPT THINGS ===
       S.ascLevel = oldAscLevel + 1;
+      if (S.ascLevel >= 6) S.transcendPoints += Math.floor((S.ascLevel - 5) * 1.5);
       S.ascPoints = oldAscPoints;
-      S.ascMultiplier = oldAscMultiplier;   // or calculate new one if you prefer
+      S.ascMultiplier = oldAscMultiplier;
 
       S.achDone = oldAch;
       S.loginStreak = oldLoginStreak;
       S.dailyDay = oldDailyDay;
       S.lastDailyDate = oldLastDailyDate;
 
-      // Recalculate everything fresh
       recalcCps();
 
-      // Visual feedback
       spawnParts(window.innerWidth / 2, window.innerHeight / 2, 120, '#ce82ff');
       showEvent(`✨ ASCENDED to ${nextTier.name}! ×${S.ascMultiplier} permanent!`);
       notify(`✨ Ascension ${S.ascLevel} complete! All upgrades reset!`);
@@ -2835,6 +2907,48 @@
       saveGame();
       switchTab('ascend');
     }
+
+    function transcend() {
+      const tier = TRANSCEND_TIERS[S.transcendLevel];
+      if (!tier) { notify('🌌 You have truly transcended everything. There is nothing left to break.'); return; }
+      if (S.te < tier.reqTe) { notify(`Need ${fmt(tier.reqTe)} total bombos!`); return; }
+      if (S.transcendPoints < tier.cost) { notify(`Need ${tier.cost} Transcend Shards!`); return; }
+
+      if (!confirm(`🌌 TRANSCEND TO ${tier.name.toUpperCase()}?\n\n• Score, buildings, upgrades, shop, everything resets\n• You keep ALL Ascension progress + achievements + streak\n• Gain ×${tier.multGain} permanent multiplier\n\nThis is the true endgame.`)) return;
+
+      const oldTLevel = S.transcendLevel;
+      const oldTPoints = S.transcendPoints - tier.cost;
+      const oldTMult = S.transcendMultiplier || 1;
+      const oldAscLevel = S.ascLevel;
+      const oldAscMult = S.ascMultiplier;
+      const oldAch = { ...S.achDone };
+      const oldStreak = S.loginStreak;
+      const oldDailyDay = S.dailyDay;
+      const oldLastDaily = S.lastDailyDate;
+
+      S = newState();
+
+      S.transcendLevel = oldTLevel + 1;
+      S.transcendMultiplier = oldTMult * tier.multGain;
+      S.transcendPoints = oldTPoints;
+
+      S.ascLevel = oldAscLevel;
+      S.ascMultiplier = oldAscMult;
+      S.achDone = oldAch;
+      S.loginStreak = oldStreak;
+      S.dailyDay = oldDailyDay;
+      S.lastDailyDate = oldLastDaily;
+
+      recalcCps();
+      spawnParts(window.innerWidth / 2, window.innerHeight / 2, 200, '#ce82ff');
+      showEvent(`🌌 TRANSCENDED! ×${S.transcendMultiplier.toFixed(0)} forever!`);
+      notify(`🌌 Reality broken. New multiplier: ×${S.transcendMultiplier.toFixed(0)}`);
+
+      saveGame();
+      renderAll();
+      switchTab('transcend');
+    }
+
     function updateChallengeProgress(type, value) {
       CHALLENGE_DEFS.forEach(c => {
         if (S.chalClaimed[c.id]) return;
@@ -2940,6 +3054,12 @@
         if (curTab === 'stats') renderStats();
         if (curTab === 'leaderboard') updateLbStatus();
       }
+
+      autoSaveTimer += dt;
+      if (autoSaveTimer >= 8) {
+        saveGame();
+        autoSaveTimer = 0;
+      }
     }, 50);
 
     let curLbTab = 'all';
@@ -3024,20 +3144,17 @@
       if (!isFinite(n) || n <= 0) return "0";
 
       const suffixes = [
-        "", "K", "M", "B", "T",
-        "Qa", "Qi", "Sx", "Sp", "Oc", "No",
-        "Dc", "Ud", "Dd", "Td",
-        "Qad", "Qid", "Sxd", "Spd", "Ocd", "Nod",
-        "Vg", "Uvg", "Dvg", "Tvg"
+        "", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No",
+        "Dc", "Ud", "Dd", "Td", "Qad", "Qid", "Sxd", "Spd",
+        "Ocd", "Nod", "Vg", "Uvg", "Dvg", "Tvg"
       ];
 
       if (n < 1000) return Math.floor(n).toLocaleString();
 
       const tier = Math.floor(Math.log10(n) / 3);
 
-      // If number is too big for our suffix list → use scientific
       if (tier >= suffixes.length) {
-        return n.toExponential(2);
+        return n.toExponential(2).replace(/\+/g, '');
       }
 
       const scale = Math.pow(10, tier * 3);
@@ -3057,7 +3174,6 @@
         const done = !!S.bought[u.id];
         if (done) boughtCount++;
 
-        // === FIXED: always use the correct discounted price ===
         let thisCost = Math.floor(u.cost * (S.upgDiscount || 1));
 
         const unlocked = S.te >= u.req;
@@ -3261,6 +3377,43 @@
   </div>`;
     }
 
+
+    function renderTranscendPage() {
+      const inner = document.getElementById('transcend-page-inner');
+      let html = `
+    <div class="asc-points-card">
+      <div class="asc-points-val">${S.transcendPoints} 🌌</div>
+      <div class="asc-points-lbl">Transcend Shards • Earned by ascending many times</div>
+    </div>
+    <div style="font-size:14px;font-weight:900;color:var(--duo-gray-900);margin:20px 0 12px">🌌 Transcend Tiers</div>
+  `;
+
+      TRANSCEND_TIERS.forEach((tier, i) => {
+        const owned = i < S.transcendLevel;
+        const current = i === S.transcendLevel;
+        const can = current && S.te >= tier.reqTe && S.transcendPoints >= tier.cost;
+
+        html += `
+      <div class="asc-tier ${current ? 'at-cur' : ''}">
+        <div class="asc-tier-hdr">
+          <div class="asc-tier-ico">${tier.ico}</div>
+          <div>
+            <div class="asc-tier-name" style="color:${owned ? 'var(--duo-green)' : current ? 'var(--duo-purple-dark)' : 'var(--duo-gray-300)'}">${tier.name} ${owned ? '✓' : current ? '← NOW' : ''}</div>
+            <div style="font-size:11px;color:var(--duo-gray-300);font-weight:700">Cost: ${tier.cost} 🌌 • Need: ${fmt(tier.reqTe)} total</div>
+          </div>
+        </div>
+        <div class="asc-tier-desc">${tier.desc}</div>
+        ${tier.perks.map(p => `<div class="asc-perk${owned ? ' owned' : ''}"><span class="asc-perk-ico">${owned ? '✅' : '🌌'}</span><span>${p}</span></div>`).join('')}
+        ${current ? `<div class="asc-cost">${S.transcendPoints >= tier.cost ? '✅' : '❌'} ${S.transcendPoints}/${tier.cost} 🌌 &nbsp; ${S.te >= tier.reqTe ? '✅' : '❌'} ${fmt(S.te)}/${fmt(tier.reqTe)}</div>
+        <button class="buy-asc" onclick="transcend()" ${can ? '' : 'disabled'}>🌌 TRANSCEND NOW!</button>` : ''}
+        ${owned ? `<div class="owned-asc">✓ Transcended</div>` : ''}
+      </div>`;
+      });
+
+      inner.innerHTML = html;
+    }
+
+
     function renderStats() {
       const grid = document.getElementById('stats-grid'); if (!grid) return;
       const elapsed = Math.floor((Date.now() - S.sessionStart) / 1000);
@@ -3326,6 +3479,7 @@
       if (t === 'stats') renderStats();
       if (t === 'shop') renderShop();
       if (t === 'ascend') renderAscendPage();
+      if (t === 'transcend') renderTranscendPage();
     }
 
     let notifT;
@@ -3370,7 +3524,7 @@
 
     function renderAll() {
       renderUpgrades(); renderBuildings(); renderMilestones(); renderAchievements();
-      renderChallenges(); renderShop(); renderAscendPage(); renderLeaderboard();
+      renderChallenges(); renderShop(); renderAscendPage(); renderLeaderboard(); renderTranscendPage();
     }
 
     loadGame(); recalcCps(); renderAll(); updateUI();
