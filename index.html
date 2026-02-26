@@ -3034,35 +3034,64 @@
 
       return scaled.toFixed(2) + suffixes[tier];
     }
-
     function renderUpgrades() {
-      const list = document.getElementById('upg-list'); if (!list) return;
-      list.innerHTML = ''; let boughtCount = 0;
+      const list = document.getElementById('upg-list');
+      if (!list) return;
+
+      list.innerHTML = '';
+      let boughtCount = 0;
+
       UPGRADES.forEach(u => {
-        const done = !!S.bought[u.id]; if (done) boughtCount++;
-        const unlocked = S.te >= u.req, afford = unlocked && S.score >= u.cost;
+        const done = !!S.bought[u.id];
+        if (done) boughtCount++;
+
+        // === NEW: calculate the actual discounted price ===
+        let thisCost = u.cost;
+        if (S.upgDiscount) thisCost = Math.floor(u.cost * (1 - S.upgDiscount));
+
+        const unlocked = S.te >= u.req;
+        const afford = unlocked && S.score >= thisCost;
+
         const div = document.createElement('div');
-        div.className = 'upg' + (done ? ' ud' : '') + (done || unlocked ? '' : " ul") + (!done && afford ? ' ca' : '');
+        div.className = 'upg' +
+          (done ? ' ud' : '') +
+          (done || unlocked ? '' : ' ul') +
+          (!done && afford ? ' ca' : '');
+
         if (!done && !unlocked) div.className = 'upg ul';
-        div.innerHTML = `<div class="ui">${u.ico}</div>
+
+        div.innerHTML = `
+      <div class="ui">${u.ico}</div>
       <div class="ut">
         <div class="un">${u.name}</div>
         <div class="ud2">${u.desc}</div>
-        ${!done ? `<div class="upr">🥁 ${fmt(u.cost)}${u.req > 0 && S.te < u.req ? ` · Need ${fmt(u.req)} earned` : ''}</div>` : ''}
+        ${!done ? `<div class="upr">🥁 ${fmt(thisCost)}${u.req > 0 && S.te < u.req ? ` · Need ${fmt(u.req)} earned` : ''}</div>` : ''}
       </div>
-      ${done ? '<div class="uch">✓</div>' : ''}`;
-        if (!done && unlocked) div.addEventListener('click', () => buyUpgrade(u.id));
+      ${done ? '<div class="uch">✓</div>' : ''}
+    `;
+
+        if (!done && unlocked) {
+          div.addEventListener('click', () => buyUpgrade(u.id));
+        }
         list.appendChild(div);
       });
+
       document.getElementById('upg-count').textContent = `${boughtCount}/${UPGRADES.length}`;
     }
+
     function renderUpgFast() {
       document.querySelectorAll('#upg-list .upg').forEach((div, i) => {
-        const u = UPGRADES[i]; if (!u || S.bought[u.id]) return;
-        const afford = S.te >= u.req && S.score >= u.cost; div.classList.toggle('ca', afford);
+        const u = UPGRADES[i];
+        if (!u || S.bought[u.id]) return;
+
+        // === NEW: same discounted price calculation ===
+        let thisCost = u.cost;
+        if (S.upgDiscount) thisCost = Math.floor(u.cost * (1 - S.upgDiscount));
+
+        const afford = S.te >= u.req && S.score >= thisCost;
+        div.classList.toggle('ca', afford);
       });
     }
-
     function renderBuildings() {
       const list = document.getElementById('bld-list'); if (!list) return;
       list.innerHTML = '';
