@@ -2759,17 +2759,28 @@
 
     function buyUpgrade(id) {
       const u = UPGRADES.find(x => x.id === id);
-      if (!u || S.bought[id]) return;
-      let cost = u.cost;
-      if (S.upgDiscount) cost = Math.floor(cost * (1 - S.upgDiscount));
+      if (!u || S.bought[u.id]) return;
+
+      // === FIXED: always multiply by the discount multiplier (default = 1) ===
+      let cost = Math.floor(u.cost * (S.upgDiscount || 1));
+
       if (S.score < cost || S.te < u.req) return;
-      S.score -= cost; S.bought[id] = true; S.stats.upgBought++; S.chalSessionUpgBought++;
-      u.apply(S); recalcCps(); playBuySound();
+
+      S.score -= cost;
+      S.bought[id] = true;
+      S.stats.upgBought++;
+      S.chalSessionUpgBought++;
+      u.apply(S);
+      recalcCps();
+      playBuySound();
       notify(`⚡ ${u.name} unlocked!`);
       updateChallengeProgress('buy_upg', S.chalSessionUpgBought);
-      checkAchievements(); updateUI(); renderUpgrades(); renderBldFast(); saveGame();
+      checkAchievements();
+      updateUI();
+      renderUpgrades();
+      renderBldFast();
+      saveGame();
     }
-
     function buyShopItem(id) {
       const item = SHOP_ITEMS.find(x => x.id === id); if (!item) return;
       if (!item.reuse && S.shopBought.includes(id)) return;
@@ -3034,6 +3045,7 @@
 
       return scaled.toFixed(2) + suffixes[tier];
     }
+
     function renderUpgrades() {
       const list = document.getElementById('upg-list');
       if (!list) return;
@@ -3045,9 +3057,8 @@
         const done = !!S.bought[u.id];
         if (done) boughtCount++;
 
-        // === NEW: calculate the actual discounted price ===
-        let thisCost = u.cost;
-        if (S.upgDiscount) thisCost = Math.floor(u.cost * (1 - S.upgDiscount));
+        // === FIXED: always use the correct discounted price ===
+        let thisCost = Math.floor(u.cost * (S.upgDiscount || 1));
 
         const unlocked = S.te >= u.req;
         const afford = unlocked && S.score >= thisCost;
@@ -3055,10 +3066,8 @@
         const div = document.createElement('div');
         div.className = 'upg' +
           (done ? ' ud' : '') +
-          (done || unlocked ? '' : ' ul') +
+          (!done && !unlocked ? ' ul' : '') +
           (!done && afford ? ' ca' : '');
-
-        if (!done && !unlocked) div.className = 'upg ul';
 
         div.innerHTML = `
       <div class="ui">${u.ico}</div>
@@ -3084,14 +3093,13 @@
         const u = UPGRADES[i];
         if (!u || S.bought[u.id]) return;
 
-        // === NEW: same discounted price calculation ===
-        let thisCost = u.cost;
-        if (S.upgDiscount) thisCost = Math.floor(u.cost * (1 - S.upgDiscount));
-
+        let thisCost = Math.floor(u.cost * (S.upgDiscount || 1));
         const afford = S.te >= u.req && S.score >= thisCost;
         div.classList.toggle('ca', afford);
       });
     }
+
+
     function renderBuildings() {
       const list = document.getElementById('bld-list'); if (!list) return;
       list.innerHTML = '';
