@@ -1,75 +1,3539 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Bombo Clicker — Maintenance</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body, html {
-    height:100%;
-    font-family:'Inter',sans-serif;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    color:#fff;
-  }
+  <meta charset="UTF-8">
+  <title>🥁 Mi Bombo Clicker</title>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --duo-green: #58cc02;
+      --duo-green-dark: #46a302;
+      --duo-green-light: #d7ffb8;
+      --duo-blue: #1cb0f6;
+      --duo-blue-dark: #0099d6;
+      --duo-red: #ff4b4b;
+      --duo-red-dark: #ea2b2b;
+      --duo-yellow: #ffc800;
+      --duo-yellow-dark: #e6b200;
+      --duo-purple: #ce82ff;
+      --duo-purple-dark: #9747ff;
+      --duo-orange: #ff9600;
+      --duo-gray-100: #f7f7f7;
+      --duo-gray-200: #e5e5e5;
+      --duo-gray-300: #afafaf;
+      --duo-gray-400: #777;
+      --duo-gray-900: #3c3c3c;
+      --duo-white: #fff;
+      --border-radius: 16px;
+      --border-radius-sm: 12px;
+      --border-radius-xs: 8px;
+      --shadow-sm: 0 2px 0 rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 0 rgba(0, 0, 0, 0.12);
+      --shadow-lg: 0 6px 0 rgba(0, 0, 0, 0.14);
+    }
 
-  .container {
-    background: rgba(255,255,255,0.05);
-    border-radius: 20px;
-    padding: 50px 35px;
-    text-align: center;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-    max-width: 400px;
-    width: 90%;
-  }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
 
-  .icon {
-    font-size: 60px;
-    margin-bottom: 20px;
-  }
+    html,
+    body {
+      height: 100%;
+      overflow: hidden
+    }
 
-  h1 {
-    font-size: 2rem;
-    margin-bottom: 12px;
-  }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--duo-gray-100);
+      color: var(--duo-gray-900);
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      font-size: 14px
+    }
 
-  p {
-    font-size: 1rem;
-    margin-bottom: 10px;
-    opacity: 0.85;
-  }
+    #hdr {
+      height: 56px;
+      background: var(--duo-white);
+      border-bottom: 2px solid var(--duo-gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+      z-index: 30
+    }
 
-  .status-link {
-    display:inline-block;
-    margin-top:15px;
-    padding:10px 25px;
-    font-weight:600;
-    font-size:1rem;
-    color:#fff;
-    background-color:#ff4b4b;
-    border-radius:8px;
-    text-decoration:none;
-    transition: background-color 0.2s;
-  }
-  .status-link:hover {
-    background-color:#cc3a3a;
-  }
-</style>
+    #hdr-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--duo-green);
+      letter-spacing: -0.3px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .hpills {
+      display: flex;
+      gap: 6px;
+      align-items: center
+    }
+
+    .hp {
+      background: var(--duo-gray-100);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: 100px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--duo-gray-400)
+    }
+
+    .hp b {
+      color: var(--duo-gray-900)
+    }
+
+    .hp.gy b {
+      color: var(--duo-yellow-dark)
+    }
+
+    .hp.gg b {
+      color: var(--duo-green)
+    }
+
+    .hp.gr b {
+      color: var(--duo-red)
+    }
+
+    .hp.gp b {
+      color: var(--duo-purple-dark)
+    }
+
+    #sf {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--duo-green);
+      opacity: 0;
+      transition: opacity .3s
+    }
+
+    #sf.on {
+      opacity: 1
+    }
+
+    #tabs {
+      background: var(--duo-white);
+      border-bottom: 2px solid var(--duo-gray-200);
+      display: flex;
+      flex-shrink: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 0 8px
+    }
+
+    #tabs::-webkit-scrollbar {
+      display: none
+    }
+
+    .tab {
+      flex: 1;
+      min-width: 60px;
+      padding: 8px 4px 6px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 11px;
+      color: var(--duo-gray-300);
+      border-bottom: 3px solid transparent;
+      transition: all .15s;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      white-space: nowrap
+    }
+
+    .tab:hover {
+      color: var(--duo-gray-400)
+    }
+
+    .tab.on {
+      color: var(--duo-green);
+      border-bottom-color: var(--duo-green)
+    }
+
+    .tab-ic {
+      font-size: 16px;
+      display: block;
+      margin-bottom: 2px
+    }
+
+    .tab-badge {
+      display: inline-block;
+      background: var(--duo-red);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 1px 5px;
+      border-radius: 100px;
+      margin-left: 2px;
+      vertical-align: top;
+      margin-top: -2px
+    }
+
+    #main {
+      display: grid;
+      grid-template-columns: 240px 1fr 270px;
+      flex: 1;
+      overflow: hidden;
+      background: var(--duo-gray-100);
+      gap: 0
+    }
+
+    .sp {
+      background: var(--duo-white);
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: var(--duo-gray-200) transparent
+    }
+
+    .sp::-webkit-scrollbar {
+      width: 4px
+    }
+
+    .sp::-webkit-scrollbar-thumb {
+      background: var(--duo-gray-200);
+      border-radius: 4px
+    }
+
+    #lp {
+      border-right: 2px solid var(--duo-gray-200)
+    }
+
+    #rp {
+      border-left: 2px solid var(--duo-gray-200)
+    }
+
+    .ph {
+      padding: 12px 14px 10px;
+      font-weight: 900;
+      font-size: 12px;
+      color: var(--duo-gray-300);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 2px solid var(--duo-gray-100);
+      position: sticky;
+      top: 0;
+      background: var(--duo-white);
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .upg {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--duo-gray-100);
+      cursor: pointer;
+      transition: background .1s;
+      position: relative
+    }
+
+    .upg:hover:not(.ul):not(.ud) {
+      background: var(--duo-gray-100)
+    }
+
+    .upg.ul {
+      opacity: .3;
+      cursor: default;
+      pointer-events: none
+    }
+
+    .upg.ud {
+      background: var(--duo-green-light);
+      opacity: .7;
+      pointer-events: none;
+      cursor: default
+    }
+
+    .upg.ca {
+      background: #fff9db
+    }
+
+    .upg.ca .ui {
+      border-color: var(--duo-yellow);
+      background: #fff9db
+    }
+
+    .ui {
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      border-radius: var(--border-radius-xs);
+      border: 2px solid var(--duo-gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      background: var(--duo-gray-100);
+      flex-shrink: 0
+    }
+
+    .upg.ud .ui {
+      border-color: var(--duo-green);
+      background: var(--duo-green-light)
+    }
+
+    .ut {
+      flex: 1;
+      min-width: 0
+    }
+
+    .un {
+      font-weight: 800;
+      font-size: 12px;
+      line-height: 1.3;
+      color: var(--duo-gray-900)
+    }
+
+    .ud2 {
+      font-size: 11px;
+      color: var(--duo-gray-300);
+      line-height: 1.3;
+      margin-top: 1px
+    }
+
+    .upr {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--duo-orange);
+      margin-top: 2px
+    }
+
+    .uch {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--duo-green);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 100px
+    }
+
+    #center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      padding: 16px 14px 12px;
+      gap: 10px;
+      position: relative;
+      background: var(--duo-gray-100)
+    }
+
+    #sc-wrap {
+      text-align: center
+    }
+
+    #big-score {
+      font-size: 52px;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--duo-gray-900);
+      letter-spacing: -2px
+    }
+
+    #big-score.pop {
+      animation: pop .1s ease
+    }
+
+    @keyframes pop {
+
+      0%,
+      100% {
+        transform: scale(1)
+      }
+
+      50% {
+        transform: scale(1.06)
+      }
+    }
+
+    #sc-sub {
+      font-size: 11px;
+      color: var(--duo-gray-300);
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 2px
+    }
+
+    #cps-ln {
+      font-size: 12px;
+      color: var(--duo-green);
+      font-weight: 700;
+      margin-top: 3px
+    }
+
+    #ca {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0
+    }
+
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid;
+      animation: rp 2.5s ease-in-out infinite;
+      pointer-events: none
+    }
+
+    .r1 {
+      width: 178px;
+      height: 178px;
+      border-color: rgba(88, 204, 2, .12)
+    }
+
+    .r2 {
+      width: 148px;
+      height: 148px;
+      border-color: rgba(255, 200, 0, .10);
+      animation-delay: .8s
+    }
+
+    .r3 {
+      width: 118px;
+      height: 118px;
+      border-color: rgba(28, 176, 246, .08);
+      animation-delay: 1.6s
+    }
+
+    @keyframes rp {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: .5
+      }
+
+      50% {
+        transform: scale(1.05);
+        opacity: 1
+      }
+    }
+
+    #mb {
+      position: relative;
+      z-index: 2;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      border: none;
+      background: var(--duo-green);
+      cursor: pointer;
+      box-shadow: 0 6px 0 var(--duo-green-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      outline: none;
+      transition: transform .08s, box-shadow .08s
+    }
+
+    #mb:hover {
+      background: #62dc05;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 0 var(--duo-green-dark)
+    }
+
+    #mb.dn {
+      transform: translateY(6px) !important;
+      box-shadow: 0 0 0 var(--duo-green-dark) !important
+    }
+
+    #mb .drum-img {
+      width: 92px;
+      height: 92px;
+      pointer-events: none;
+      transition: transform .08s;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)
+    }
+
+    #mb.dn .drum-img {
+      transform: scale(.88) rotate(-5deg)
+    }
+
+    #cmb-wrap {
+      width: 100%;
+      max-width: 280px
+    }
+
+    #cmb-track {
+      background: var(--duo-gray-200);
+      border-radius: 100px;
+      height: 16px;
+      overflow: hidden
+    }
+
+    #cmb-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: var(--duo-yellow);
+      transition: width .1s;
+      width: 0%
+    }
+
+    #cmb-fill.hot {
+      background: var(--duo-red)
+    }
+
+    #cmb-txt {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--duo-gray-300);
+      margin-top: 4px
+    }
+
+    #sr {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center
+    }
+
+    .spl {
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: 100px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--duo-gray-400);
+      display: flex;
+      align-items: center;
+      gap: 4px
+    }
+
+    .spl b {
+      color: var(--duo-gray-900);
+      font-weight: 800
+    }
+
+    #xpw {
+      width: 100%;
+      max-width: 280px
+    }
+
+    #xpb-track {
+      background: var(--duo-gray-200);
+      border-radius: 100px;
+      height: 12px;
+      overflow: hidden
+    }
+
+    #xpb {
+      height: 100%;
+      border-radius: 100px;
+      background: var(--duo-green);
+      transition: width .5s;
+      width: 0%
+    }
+
+    #xplbl {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--duo-gray-300);
+      margin-top: 4px
+    }
+
+    #msr {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 310px
+    }
+
+    .ms {
+      background: var(--duo-gray-100);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: 100px;
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--duo-gray-300)
+    }
+
+    .ms.done {
+      border-color: var(--duo-yellow);
+      background: #fff9db;
+      color: var(--duo-yellow-dark)
+    }
+
+    #asc-btn {
+      background: var(--duo-purple-dark);
+      border: none;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 0 #6e35c4;
+      padding: 10px 24px;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all .08s;
+      display: none;
+      letter-spacing: .3px
+    }
+
+    #asc-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #6e35c4
+    }
+
+    #asc-btn:active {
+      transform: translateY(4px) !important;
+      box-shadow: 0 0 0 #6e35c4 !important
+    }
+
+    #asc-info {
+      font-size: 11px;
+      color: var(--duo-purple-dark);
+      font-weight: 700;
+      text-align: center;
+      display: none
+    }
+
+    .bld {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--duo-gray-100);
+      cursor: pointer;
+      transition: background .08s;
+      position: relative
+    }
+
+    .bld:hover:not(.bl) {
+      background: var(--duo-gray-100)
+    }
+
+    .bl {
+      opacity: .2;
+      cursor: not-allowed;
+      pointer-events: none
+    }
+
+    .baf {
+      background: #f0fff0
+    }
+
+    .baf::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--duo-green);
+      border-radius: 0 2px 2px 0
+    }
+
+    .bic {
+      width: 52px;
+      height: 52px;
+      min-width: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      background: var(--duo-gray-100);
+      border-right: 1px solid var(--duo-gray-200);
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden
+    }
+
+    .bic.sh::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .5), transparent);
+      animation: sh 1.2s infinite
+    }
+
+    @keyframes sh {
+      0% {
+        transform: translateX(-100%)
+      }
+
+      100% {
+        transform: translateX(100%)
+      }
+    }
+
+    .bbody {
+      flex: 1;
+      padding: 8px 10px;
+      min-width: 0
+    }
+
+    .bn {
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--duo-gray-900)
+    }
+
+    .bi {
+      font-size: 11px;
+      color: var(--duo-gray-300);
+      margin-top: 2px
+    }
+
+    .bc {
+      color: var(--duo-orange);
+      font-weight: 800
+    }
+
+    .bcnt {
+      width: 44px;
+      min-width: 44px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--duo-gray-300);
+      padding-right: 8px;
+      flex-shrink: 0
+    }
+
+    .bcnt.hi {
+      color: var(--duo-green)
+    }
+
+    .tp {
+      display: none;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 16px
+    }
+
+    .tp.ap {
+      display: block
+    }
+
+    .pg-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--duo-gray-900);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .pg-sub {
+      font-size: 12px;
+      color: var(--duo-gray-300);
+      font-weight: 600;
+      margin-bottom: 14px
+    }
+
+    .duo-card {
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius);
+      padding: 14px;
+      margin-bottom: 10px
+    }
+
+    .ag {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px
+    }
+
+    .ac {
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius-sm);
+      padding: 12px 8px;
+      text-align: center;
+      transition: all .2s;
+      position: relative
+    }
+
+    .ac.un {
+      border-color: var(--duo-yellow)
+    }
+
+    .ac.un::after {
+      content: '✓';
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-size: 10px;
+      background: var(--duo-yellow);
+      color: #000;
+      border-radius: 100px;
+      padding: 1px 5px;
+      font-weight: 900
+    }
+
+    .aic {
+      font-size: 28px;
+      display: block;
+      margin-bottom: 6px
+    }
+
+    .ac:not(.un) .aic {
+      filter: grayscale(1);
+      opacity: .25
+    }
+
+    .an {
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.3;
+      color: var(--duo-gray-900)
+    }
+
+    .ah {
+      font-size: 10px;
+      color: var(--duo-gray-300);
+      margin-top: 3px;
+      line-height: 1.2;
+      font-weight: 600
+    }
+
+    .ac:not(.un) .an {
+      color: var(--duo-gray-300)
+    }
+
+    .cpath-outer {
+      padding-bottom: 20px
+    }
+
+    .league-hdr {
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: 14px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start
+    }
+
+    .league-hdr-ico {
+      font-size: 44px;
+      flex-shrink: 0
+    }
+
+    .league-hdr-info h2 {
+      font-size: 18px;
+      font-weight: 900
+    }
+
+    .league-hdr-info p {
+      font-size: 12px;
+      color: var(--duo-gray-300);
+      margin-top: 3px;
+      font-weight: 600
+    }
+
+    .league-progress {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .lp-track {
+      flex: 1;
+      background: var(--duo-gray-200);
+      border-radius: 100px;
+      height: 10px;
+      overflow: hidden
+    }
+
+    .lp-fill {
+      height: 100%;
+      background: var(--duo-green);
+      border-radius: 100px;
+      transition: width .5s
+    }
+
+    .lp-txt {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--duo-gray-300);
+      white-space: nowrap
+    }
+
+    .cpath {
+      position: relative;
+      padding-left: 28px
+    }
+
+    .cpath::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--duo-gray-200)
+    }
+
+    .ccard {
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius);
+      padding: 14px;
+      margin-bottom: 10px;
+      position: relative;
+      transition: all .2s
+    }
+
+    .ccard::before {
+      content: '';
+      position: absolute;
+      left: -22px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--duo-gray-200);
+      border: 2px solid var(--duo-white)
+    }
+
+    .ccard.c-active {
+      border-color: var(--duo-blue)
+    }
+
+    .ccard.c-active::before {
+      background: var(--duo-blue)
+    }
+
+    .ccard.c-done {
+      border-color: var(--duo-green);
+      background: var(--duo-green-light)
+    }
+
+    .ccard.c-done::before {
+      background: var(--duo-green)
+    }
+
+    .ccard.c-locked {
+      opacity: .4;
+      cursor: default;
+      pointer-events: none
+    }
+
+    .ccard-top {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 10px
+    }
+
+    .ccard-ico {
+      font-size: 26px;
+      flex-shrink: 0
+    }
+
+    .ccard-info .cname {
+      font-weight: 900;
+      font-size: 14px;
+      color: var(--duo-gray-900)
+    }
+
+    .ccard-info .cdesc {
+      font-size: 12px;
+      color: var(--duo-gray-300);
+      margin-top: 3px;
+      line-height: 1.5;
+      font-weight: 600
+    }
+
+    .ccard-info .creward {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--duo-orange);
+      margin-top: 4px
+    }
+
+    .ctimer {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 100px;
+      display: inline-block;
+      margin-top: 4px
+    }
+
+    .ctimer.urgent {
+      background: #ffebeb;
+      color: var(--duo-red)
+    }
+
+    .ctimer.ok {
+      background: #e8f4fd;
+      color: var(--duo-blue-dark)
+    }
+
+    .ctimer.done {
+      background: var(--duo-green-light);
+      color: var(--duo-green-dark)
+    }
+
+    .cprog-wrap {
+      background: var(--duo-gray-200);
+      border-radius: 100px;
+      height: 10px;
+      overflow: hidden;
+      margin-bottom: 5px
+    }
+
+    .cprog {
+      height: 100%;
+      border-radius: 100px;
+      background: var(--duo-blue);
+      transition: width .4s;
+      min-width: 4px
+    }
+
+    .cprog.full {
+      background: var(--duo-green)
+    }
+
+    .cpct {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--duo-gray-300);
+      text-align: right
+    }
+
+    .claim-btn {
+      background: var(--duo-yellow);
+      border: none;
+      border-radius: var(--border-radius-xs);
+      box-shadow: 0 3px 0 var(--duo-yellow-dark);
+      padding: 8px 16px;
+      color: #333;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all .08s
+    }
+
+    .claim-btn:active {
+      transform: translateY(3px);
+      box-shadow: none
+    }
+
+    .claimed-lbl {
+      background: var(--duo-green-light);
+      color: var(--duo-green-dark);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 100px;
+      display: inline-block;
+      margin-top: 6px
+    }
+
+    .daily-reset {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--duo-gray-300);
+      text-align: center;
+      padding: 10px;
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius-sm);
+      margin-bottom: 14px
+    }
+
+    .chal-section-hdr {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 16px 0 10px;
+      font-weight: 900;
+      font-size: 13px;
+      position: relative;
+      left: -28px
+    }
+
+    .chal-section-hdr em {
+      font-size: 11px;
+      color: var(--duo-gray-300);
+      font-style: normal;
+      font-weight: 700
+    }
+
+    #lb-tabs {
+      display: flex;
+      background: var(--duo-gray-100);
+      border-radius: var(--border-radius-sm);
+      padding: 4px;
+      margin-bottom: 14px;
+      gap: 4px
+    }
+
+    .lbt {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 12px;
+      color: var(--duo-gray-300);
+      border-radius: var(--border-radius-xs);
+      transition: all .15s
+    }
+
+    .lbt:hover {
+      background: var(--duo-gray-200)
+    }
+
+    .lbt.on {
+      background: var(--duo-white);
+      color: var(--duo-gray-900);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, .08)
+    }
+
+    #lb-name-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px
+    }
+
+    #lb-inp {
+      flex: 1;
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius-xs);
+      padding: 10px 12px;
+      color: var(--duo-gray-900);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      outline: none;
+      transition: border-color .15s
+    }
+
+    #lb-inp:focus {
+      border-color: var(--duo-blue)
+    }
+
+    #lb-sub {
+      background: var(--duo-green);
+      border: none;
+      border-radius: var(--border-radius-xs);
+      box-shadow: 0 3px 0 var(--duo-green-dark);
+      padding: 10px 14px;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .08s
+    }
+
+    #lb-sub:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 0 var(--duo-green-dark)
+    }
+
+    #lb-sub:active {
+      transform: translateY(3px);
+      box-shadow: none
+    }
+
+    #lb-notice {
+      font-size: 11px;
+      color: var(--duo-gray-300);
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-align: center;
+      padding: 8px;
+      background: var(--duo-green-light);
+      border-radius: var(--border-radius-xs);
+      color: var(--duo-green-dark)
+    }
+
+    .lbr {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius-sm);
+      margin-bottom: 8px;
+      transition: all .2s
+    }
+
+    .lbr.me {
+      border-color: var(--duo-green);
+      background: var(--duo-green-light)
+    }
+
+    .lbr.me .lbname::after {
+      content: 'YOU';
+      background: var(--duo-green);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 100px;
+      margin-left: 6px;
+      vertical-align: middle
+    }
+
+    .lbrank {
+      font-size: 18px;
+      font-weight: 900;
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+      color: var(--duo-gray-300)
+    }
+
+    .lbrank.gold {
+      color: #e6a800
+    }
+
+    .lbrank.silver {
+      color: #afafaf
+    }
+
+    .lbrank.bronze {
+      color: #c07830
+    }
+
+    .lbi {
+      flex: 1;
+      min-width: 0
+    }
+
+    .lbname {
+      font-weight: 800;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .lbscore {
+      font-size: 11px;
+      color: var(--duo-gray-300);
+      font-weight: 600;
+      margin-top: 1px
+    }
+
+    .lbflair {
+      font-size: 16px;
+      flex-shrink: 0
+    }
+
+    .lb-live-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--duo-red);
+      border-radius: 50%;
+      animation: pulse 1.2s infinite;
+      margin-right: 4px;
+      vertical-align: middle
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .2
+      }
+    }
+
+    #lb-loading {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--duo-gray-300);
+      font-weight: 700
+    }
+
+    #lb-empty {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--duo-gray-300);
+      font-weight: 700
+    }
+
+    .sg {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px
+    }
+
+    .sc {
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius-sm);
+      padding: 14px
+    }
+
+    .scl {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--duo-gray-300);
+      letter-spacing: 1px;
+      text-transform: uppercase
+    }
+
+    .scv {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--duo-gray-900);
+      margin-top: 4px
+    }
+
+    .scs {
+      font-size: 10px;
+      color: var(--duo-gray-300);
+      font-weight: 600;
+      margin-top: 2px
+    }
+
+    #reset-btn {
+      background: var(--duo-white);
+      border: 2px solid var(--duo-red);
+      border-radius: var(--border-radius-sm);
+      box-shadow: 0 3px 0 var(--duo-red-dark);
+      padding: 10px 20px;
+      color: var(--duo-red);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: all .08s
+    }
+
+    #reset-btn:active {
+      transform: translateY(3px);
+      box-shadow: none
+    }
+
+    .si {
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius-sm);
+      padding: 14px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start
+    }
+
+    .si:hover:not(.sil):not(.sib) {
+      border-color: var(--duo-blue);
+      background: #f0f9ff
+    }
+
+    .sil {
+      opacity: .3;
+      cursor: default;
+      pointer-events: none
+    }
+
+    .sib {
+      border-color: var(--duo-green);
+      background: var(--duo-green-light);
+      cursor: default
+    }
+
+    .si-i {
+      font-size: 26px;
+      flex-shrink: 0;
+      margin-top: 2px
+    }
+
+    .si-b {
+      flex: 1;
+      min-width: 0
+    }
+
+    .si-n {
+      font-weight: 900;
+      font-size: 13px;
+      color: var(--duo-gray-900)
+    }
+
+    .si-d {
+      font-size: 12px;
+      color: var(--duo-gray-300);
+      line-height: 1.5;
+      margin-top: 3px;
+      font-weight: 600
+    }
+
+    .si-c {
+      margin-top: 5px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--duo-orange)
+    }
+
+    .si-reuse {
+      font-size: 10px;
+      font-weight: 800;
+      background: var(--duo-orange);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 100px;
+      margin-left: 5px;
+      vertical-align: middle
+    }
+
+    .si-bt {
+      background: var(--duo-green-light);
+      color: var(--duo-green-dark);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-top: 5px;
+      display: inline-block
+    }
+
+    .asc-tier {
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: 10px;
+      transition: all .2s
+    }
+
+    .asc-tier.at-cur {
+      border-color: var(--duo-purple-dark)
+    }
+
+    .asc-tier-hdr {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px
+    }
+
+    .asc-tier-ico {
+      font-size: 30px
+    }
+
+    .asc-tier-name {
+      font-weight: 900;
+      font-size: 15px
+    }
+
+    .asc-tier-desc {
+      font-size: 12px;
+      color: var(--duo-gray-300);
+      line-height: 1.6;
+      margin-bottom: 10px;
+      font-weight: 600
+    }
+
+    .asc-perk {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-top: 1px solid var(--duo-gray-100);
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .asc-perk-ico {
+      font-size: 16px;
+      flex-shrink: 0
+    }
+
+    .asc-perk.owned {
+      opacity: .5
+    }
+
+    .asc-cost {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--duo-purple-dark);
+      margin-top: 8px
+    }
+
+    .buy-asc {
+      background: var(--duo-purple-dark);
+      border: none;
+      border-radius: var(--border-radius-sm);
+      box-shadow: 0 3px 0 #6e35c4;
+      padding: 10px 18px;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all .08s
+    }
+
+    .buy-asc:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 0 #6e35c4
+    }
+
+    .buy-asc:active {
+      transform: translateY(3px);
+      box-shadow: none
+    }
+
+    .buy-asc:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      pointer-events: none;
+      transform: none;
+      box-shadow: 0 3px 0 #6e35c4
+    }
+
+    .owned-asc {
+      background: var(--duo-green-light);
+      color: var(--duo-green-dark);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 100px;
+      display: inline-block;
+      margin-top: 6px
+    }
+
+    .asc-points-card {
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      text-align: center
+    }
+
+    .asc-points-val {
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--duo-purple-dark)
+    }
+
+    .asc-points-lbl {
+      font-size: 12px;
+      color: var(--duo-gray-300);
+      font-weight: 700;
+      margin-top: 4px
+    }
+
+    #notif {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--duo-gray-900);
+      border-radius: var(--border-radius-sm);
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+      transition: transform .35s cubic-bezier(.175, .885, .32, 1.275);
+      z-index: 9999;
+      text-align: center;
+      pointer-events: none;
+      max-width: 360px;
+      white-space: nowrap
+    }
+
+    #notif.on {
+      transform: translateX(-50%) translateY(0)
+    }
+
+    #ach-pop {
+      position: fixed;
+      top: 68px;
+      right: -300px;
+      background: var(--duo-white);
+      border: 2px solid var(--duo-yellow);
+      border-radius: var(--border-radius);
+      padding: 14px 16px;
+      width: 280px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+      transition: right .4s cubic-bezier(.175, .885, .32, 1.275);
+      z-index: 500
+    }
+
+    #ach-pop.on {
+      right: 12px
+    }
+
+    #ap-ico {
+      font-size: 32px;
+      float: left;
+      margin-right: 10px
+    }
+
+    #ap-lbl {
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--duo-yellow-dark);
+      letter-spacing: 1.5px;
+      text-transform: uppercase
+    }
+
+    #ap-name {
+      font-weight: 900;
+      font-size: 15px;
+      line-height: 1.2;
+      color: var(--duo-gray-900)
+    }
+
+    #ap-desc {
+      font-size: 11px;
+      color: var(--duo-gray-300);
+      margin-top: 4px;
+      clear: both;
+      font-weight: 600
+    }
+
+    #evt-banner {
+      position: fixed;
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: var(--duo-yellow);
+      border: 2px solid var(--duo-yellow-dark);
+      border-radius: var(--border-radius-sm);
+      box-shadow: 0 4px 0 var(--duo-yellow-dark);
+      padding: 10px 20px;
+      font-weight: 900;
+      font-size: 13px;
+      color: var(--duo-gray-900);
+      transition: transform .4s cubic-bezier(.175, .885, .32, 1.275);
+      z-index: 300;
+      text-align: center;
+      pointer-events: none;
+      min-width: 260px
+    }
+
+    #evt-banner.on {
+      transform: translateX(-50%) translateY(0)
+    }
+
+    #owl {
+      position: fixed;
+      bottom: -130px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      transition: bottom .5s cubic-bezier(.175, .885, .32, 1.275);
+      z-index: 400
+    }
+
+    #owl.on {
+      bottom: 0
+    }
+
+    #owl-inner {
+      background: var(--duo-white);
+      border: 2px solid var(--duo-gray-200);
+      border-top: none;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+      padding: 16px 24px;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--duo-gray-900);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, .1);
+      max-width: 400px
+    }
+
+    #owl-ico {
+      font-size: 36px;
+      display: block;
+      margin-bottom: 4px
+    }
+
+    #anti {
+      position: fixed;
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--duo-white);
+      border: 2px solid var(--duo-red);
+      border-radius: var(--border-radius-sm);
+      padding: 10px 20px;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--duo-red);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+      z-index: 500;
+      display: none;
+      text-align: center;
+      max-width: 340px
+    }
+
+    .golden {
+      position: fixed;
+      font-size: 46px;
+      cursor: pointer;
+      z-index: 800;
+      filter: drop-shadow(0 0 12px gold);
+      animation: gfl 1s ease-in-out infinite alternate, gapp 9s forwards;
+      user-select: none
+    }
+
+    .golden:hover {
+      transform: scale(1.3) !important
+    }
+
+    @keyframes gfl {
+      from {
+        transform: translateY(0)
+      }
+
+      to {
+        transform: translateY(-14px)
+      }
+    }
+
+    @keyframes gapp {
+      0% {
+        opacity: 0;
+        transform: scale(0)
+      }
+
+      8% {
+        opacity: 1;
+        transform: scale(1.1)
+      }
+
+      12% {
+        transform: scale(1)
+      }
+
+      85% {
+        opacity: 1
+      }
+
+      100% {
+        opacity: 0;
+        pointer-events: none
+      }
+    }
+
+    #daily-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      z-index: 900;
+      display: none;
+      align-items: center;
+      justify-content: center
+    }
+
+    #daily-modal.on {
+      display: flex
+    }
+
+    #daily-box {
+      background: var(--duo-white);
+      border-radius: var(--border-radius);
+      padding: 28px;
+      text-align: center;
+      max-width: 380px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .2)
+    }
+
+    #daily-box h2 {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--duo-gray-900);
+      margin-bottom: 6px
+    }
+
+    .daily-days {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin: 16px 0
+    }
+
+    .dd {
+      width: 42px;
+      height: 52px;
+      background: var(--duo-gray-100);
+      border: 2px solid var(--duo-gray-200);
+      border-radius: var(--border-radius-xs);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--duo-gray-300)
+    }
+
+    .dd.claimed {
+      border-color: var(--duo-green);
+      background: var(--duo-green-light);
+      color: var(--duo-green-dark)
+    }
+
+    .dd.today {
+      border-color: var(--duo-yellow);
+      background: #fff9db;
+      color: var(--duo-yellow-dark);
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(255, 200, 0, .25)
+    }
+
+    .dd-ico {
+      font-size: 18px;
+      display: block;
+      margin-bottom: 2px
+    }
+
+    .daily-collect {
+      background: var(--duo-green);
+      border: none;
+      border-radius: var(--border-radius-sm);
+      box-shadow: 0 4px 0 var(--duo-green-dark);
+      padding: 14px 32px;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 17px;
+      cursor: pointer;
+      transition: all .08s;
+      margin-top: 8px;
+      width: 100%
+    }
+
+    .daily-collect:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 var(--duo-green-dark)
+    }
+
+    .daily-collect:active {
+      transform: translateY(4px);
+      box-shadow: none
+    }
+
+    #offline-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      z-index: 900;
+      display: none;
+      align-items: center;
+      justify-content: center
+    }
+
+    #offline-modal.on {
+      display: flex
+    }
+
+    #offline-box {
+      background: var(--duo-white);
+      border-radius: var(--border-radius);
+      padding: 28px;
+      text-align: center;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .2)
+    }
+
+    #offline-box h2 {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--duo-gray-900);
+      margin-bottom: 6px
+    }
+
+    #offline-amt {
+      font-size: 42px;
+      font-weight: 900;
+      color: var(--duo-green);
+      margin: 14px 0;
+      letter-spacing: -1px
+    }
+
+    .ok-btn {
+      background: var(--duo-green);
+      border: none;
+      border-radius: var(--border-radius-sm);
+      box-shadow: 0 4px 0 var(--duo-green-dark);
+      padding: 14px 32px;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all .08s;
+      margin-top: 8px;
+      width: 100%
+    }
+
+    .ok-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 var(--duo-green-dark)
+    }
+
+    .ok-btn:active {
+      transform: translateY(4px);
+      box-shadow: none
+    }
+
+    #return-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      z-index: 910;
+      display: none;
+      align-items: center;
+      justify-content: center
+    }
+
+    #return-modal.on {
+      display: flex
+    }
+
+    #return-box {
+      background: var(--duo-white);
+      border-radius: var(--border-radius);
+      padding: 28px;
+      text-align: center;
+      max-width: 380px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .2)
+    }
+
+    #return-box h2 {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--duo-gray-900);
+      margin-bottom: 8px
+    }
+
+    .ftxt {
+      position: fixed;
+      font-size: 18px;
+      font-weight: 900;
+      pointer-events: none;
+      z-index: 9999;
+      animation: ftup 1.1s ease-out forwards;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, .2)
+    }
+
+    .ftxt.crit {
+      font-size: 28px !important;
+      color: var(--duo-red) !important
+    }
+
+    @keyframes ftup {
+      0% {
+        opacity: 1;
+        transform: translateY(0)scale(1)
+      }
+
+      30% {
+        opacity: 1;
+        transform: translateY(-26px)scale(1.1)
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-80px)scale(.7)
+      }
+    }
+
+    #fx {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 200
+    }
+
+    #tw-bar {
+      height: 4px;
+      background: var(--duo-orange);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      transition: width .3s;
+      display: none
+    }
+  </style>
 </head>
+
 <body>
+  <canvas id="fx"></canvas>
+  <div id="tw-bar"></div>
+  <div id="notif"></div>
+  <div id="ach-pop"><span id="ap-ico">🏆</span>
+    <div id="ap-lbl">Achievement Unlocked</div>
+    <div id="ap-name"></div>
+    <div id="ap-desc"></div>
+  </div>
+  <div id="evt-banner"></div>
+  <div id="owl">
+    <div id="owl-inner"><span id="owl-ico">🦉</span><span id="owl-msg"></span></div>
+  </div>
+  <div id="anti">🤖 Too fast! Duo sees everything. Breathe.</div>
 
-<div class="container">
-  <div class="icon">🛠️</div>
-  <h1>Under Maintenance</h1>
-  <p>Mi Bombo Clicker is temporarily offline.</p>
-  <p>We’ll be back shortly with updates!</p>
-  <a href="https://status.mibombo.nl" class="status-link">View Status Page</a>
-</div>
+  <div id="daily-modal">
+    <div id="daily-box">
+      <div style="font-size:48px;margin-bottom:8px">🌞</div>
+      <h2>Daily Reward!</h2>
+      <div style="font-size:13px;color:var(--duo-gray-300);font-weight:600">Come back every day to keep your streak!
+      </div>
+      <div class="daily-days" id="daily-days"></div>
+      <div id="daily-reward-txt" style="font-size:14px;color:var(--duo-gray-400);font-weight:700;margin-bottom:8px">
+      </div>
+      <button class="daily-collect" onclick="claimDaily()">Collect Reward 🥁</button>
+      <div style="font-size:11px;color:var(--duo-gray-300);margin-top:10px;font-weight:600">Bigger rewards each day!
+      </div>
+    </div>
+  </div>
 
+  <div id="offline-modal">
+    <div id="offline-box">
+      <div style="font-size:48px;margin-bottom:8px">🥁</div>
+      <h2>Welcome Back!</h2>
+      <div style="font-size:13px;color:var(--duo-gray-300);font-weight:600">Mi Bombo kept drumming while you were away.
+      </div>
+      <div id="offline-amt">+0</div>
+      <div style="font-size:13px;color:var(--duo-gray-300);font-weight:600">bombos earned offline</div>
+      <button class="ok-btn" onclick="closeOffline()">Awesome! 🎉</button>
+    </div>
+  </div>
+
+  <div id="return-modal">
+    <div id="return-box">
+      <div style="font-size:48px;margin-bottom:8px">🦉</div>
+      <h2>Duo Misses You!</h2>
+      <div id="return-content"></div>
+      <button class="ok-btn" style="margin-top:14px" onclick="closeReturn()">I'm Back! 🥁</button>
+    </div>
+  </div>
+
+  <div id="hdr">
+    <div id="hdr-title">🥁 Mi Bombo</div>
+    <div class="hpills">
+      <div class="hp gy">🥁 <b id="h-score">0</b></div>
+      <div class="hp gg">⚡ <b id="h-cps">0</b>/s</div>
+      <div class="hp gr">🔥 <b id="h-combo">×1</b></div>
+      <div class="hp gp" id="h-asc-pill" style="display:none">✨ <b id="h-asc">0</b></div>
+      <div id="sf">✓ Saved</div>
+    </div>
+  </div>
+
+  <div id="tabs">
+    <div class="tab on" data-t="game" onclick="switchTab('game')"><span class="tab-ic">🎮</span>Game</div>
+    <div class="tab" data-t="challenges" onclick="switchTab('challenges')"><span class="tab-ic">🏅</span>Quests<span
+        class="tab-badge" id="chal-badge" style="display:none">!</span></div>
+    <div class="tab" data-t="achievements" onclick="switchTab('achievements')"><span class="tab-ic">🏆</span>Wins</div>
+    <div class="tab" data-t="leaderboard" onclick="switchTab('leaderboard')"><span class="tab-ic">👑</span>League</div>
+    <div class="tab" data-t="ascend" onclick="switchTab('ascend')"><span class="tab-ic">✨</span>Ascend</div>
+    <div class="tab" data-t="transcend" onclick="switchTab('transcend')"><span class="tab-ic">🌌</span>Transcend</div>
+    <div class="tab" data-t="shop" onclick="switchTab('shop')"><span class="tab-ic">🛒</span>Shop</div>
+    <div class="tab" data-t="stats" onclick="switchTab('stats')"><span class="tab-ic">📊</span>Stats</div>
+  </div>
+
+  <div id="main">
+    <div class="sp" id="lp">
+      <div class="ph">⚡ Upgrades <span id="upg-count"
+          style="font-size:11px;color:var(--duo-green);font-weight:700"></span></div>
+      <div id="upg-list"></div>
+    </div>
+
+    <div id="center">
+      <div class="tp ap" id="page-game">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+          <div id="sc-wrap">
+            <div id="big-score">0</div>
+            <div id="sc-sub">BOMBOS</div>
+            <div id="cps-ln">0 per second</div>
+          </div>
+          <div id="ca">
+            <div class="ring r1"></div>
+            <div class="ring r2"></div>
+            <div class="ring r3"></div>
+            <button id="mb" aria-label="Click Mi Bombo"><img src="/image.png" alt="Mi Bombo" class="drum-img"></button>
+          </div>
+          <div id="cmb-wrap">
+            <div id="cmb-track">
+              <div id="cmb-fill"></div>
+            </div>
+            <div id="cmb-txt">COMBO ×1.0</div>
+          </div>
+          <div id="sr">
+            <div class="spl">👆 <b id="s-click">1</b>/click</div>
+            <div class="spl">⚡ <b id="s-cps">0</b>/s</div>
+            <div class="spl">🔥 <b id="s-str">×1</b></div>
+            <div class="spl">✨ <b id="s-asc">Asc.0</b></div>
+          </div>
+          <div id="xpw">
+            <div id="xpb-track">
+              <div id="xpb"></div>
+            </div>
+            <div id="xplbl">Next: 10 bombos</div>
+          </div>
+          <div id="msr"></div>
+          <button id="asc-btn" onclick="switchTab('ascend')">✨ ASCEND ✨</button>
+          <div id="asc-info"></div>
+        </div>
+      </div>
+
+      <div class="tp" id="page-challenges">
+        <div id="chal-wrap"></div>
+      </div>
+
+      <div class="tp" id="page-achievements">
+        <div class="pg-title">🏆 Achievements</div>
+        <div style="font-size:12px;color:var(--duo-gray-300);font-weight:700;margin-bottom:12px" id="ach-count"></div>
+        <div class="ag" id="ach-grid"></div>
+      </div>
+
+      <div class="tp" id="page-leaderboard">
+        <div class="pg-title"><span class="lb-live-dot"></span>League Leaderboard</div>
+        <div id="lb-tabs">
+          <div class="lbt on" onclick="switchLbTab('all')">🌍 All Time</div>
+          <div class="lbt" onclick="switchLbTab('weekly')">📅 This Week</div>
+          <div class="lbt" onclick="switchLbTab('daily')">☀️ Today</div>
+        </div>
+        <div id="lb-name-row">
+          <input type="text" id="lb-inp" placeholder="Your name (max 16 chars)" maxlength="16">
+          <button id="lb-sub" onclick="submitScore()">Submit 🥁</button>
+        </div>
+        <div id="lb-notice">🌍 Worldwide leaderboard!</div>
+        <div id="lb-status"
+          style="font-size:11px;color:var(--duo-gray-300);font-weight:600;margin-bottom:10px;text-align:center"></div>
+        <div id="lb-list">
+          <div id="lb-loading">Loading players…</div>
+        </div>
+      </div>
+
+      <div class="tp" id="page-ascend">
+        <div id="asc-page-inner" style="padding-bottom:16px"></div>
+      </div>
+
+      <div class="tp" id="page-transcend">
+        <div id="transcend-page-inner" style="padding-bottom:16px"></div>
+      </div>
+
+      <div class="tp" id="page-shop">
+        <div class="pg-title">🛒 Duo's Store</div>
+        <div class="pg-sub">Powerful power-ups for your empire!</div>
+        <div id="shop-list"></div>
+      </div>
+
+      <div class="tp" id="page-stats">
+        <div class="pg-title">📊 Your Stats</div>
+        <div class="sg" id="stats-grid"></div>
+        <div style="text-align:center">
+          <button id="reset-btn" onclick="resetGame()">🗑️ Hard Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sp" id="rp">
+      <div class="ph">🏗️ Production <span id="total-bld"
+          style="font-size:11px;color:var(--duo-green);font-weight:700"></span></div>
+      <div id="bld-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let actx = null;
+    function initAudio() { if (actx) return; actx = new AudioCtx(); }
+    function playBomboSound() {
+      try { initAudio(); const o = actx.createOscillator(), g = actx.createGain(); o.connect(g); g.connect(actx.destination); o.type = 'sine'; o.frequency.setValueAtTime(180, actx.currentTime); o.frequency.exponentialRampToValueAtTime(40, actx.currentTime + 0.15); g.gain.setValueAtTime(0.7, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.22); o.start(); o.stop(actx.currentTime + 0.22); const buf = actx.createBuffer(1, actx.sampleRate * 0.05, actx.sampleRate); const data = buf.getChannelData(0); for (let i = 0; i < data.length; i++)data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2); const src = actx.createBufferSource(), g2 = actx.createGain(); src.buffer = buf; src.connect(g2); g2.connect(actx.destination); g2.gain.setValueAtTime(0.4, actx.currentTime); src.start(); } catch (e) { }
+    }
+    function playCritSound() {
+      try { initAudio();[220, 330, 440, 550].forEach((f, i) => { const o = actx.createOscillator(), g = actx.createGain(); o.connect(g); g.connect(actx.destination); o.type = 'sawtooth'; o.frequency.value = f; g.gain.setValueAtTime(0.18, actx.currentTime + i * 0.04); g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + i * 0.04 + 0.2); o.start(actx.currentTime + i * 0.04); o.stop(actx.currentTime + i * 0.04 + 0.2); }); } catch (e) { }
+    }
+    function playGoldenSound() {
+      try { initAudio();[523, 659, 784, 1047, 1319].forEach((f, i) => { const o = actx.createOscillator(), g = actx.createGain(); o.connect(g); g.connect(actx.destination); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.18, actx.currentTime + i * 0.07); g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + i * 0.07 + 0.35); o.start(actx.currentTime + i * 0.07); o.stop(actx.currentTime + i * 0.07 + 0.35); }); } catch (e) { }
+    }
+    function playBuySound() {
+      try { initAudio();[440, 554, 659].forEach((f, i) => { const o = actx.createOscillator(), g = actx.createGain(); o.connect(g); g.connect(actx.destination); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.15, actx.currentTime + i * 0.07); g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + i * 0.07 + 0.2); o.start(actx.currentTime + i * 0.07); o.stop(actx.currentTime + i * 0.07 + 0.2); }); } catch (e) { }
+    }
+    function playDailySound() {
+      try { initAudio();[523, 659, 784, 1047].forEach((f, i) => { const o = actx.createOscillator(), g = actx.createGain(); o.connect(g); g.connect(actx.destination); o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.2, actx.currentTime + i * 0.1); g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + i * 0.1 + 0.4); o.start(actx.currentTime + i * 0.1); o.stop(actx.currentTime + i * 0.1 + 0.4); }); } catch (e) { }
+    }
+
+    const BUILDINGS = [
+      { id: 'shaker', name: '🪇 Shaker', desc: 'A tiny rattle. Duo approves.', baseCost: 10, baseCps: 0.1 },
+      { id: 'tamb', name: '🪘 Tambourine', desc: 'Jingle jingle, ¡excelente!', baseCost: 100, baseCps: 0.5 },
+      { id: 'drummer', name: '🥁 Street Drummer', desc: 'Banging for XP since 2015.', baseCost: 500, baseCps: 2 },
+      { id: 'band', name: '🎷 Brass Band', desc: 'Your whole neighborhood joined.', baseCost: 2500, baseCps: 8 },
+      { id: 'studio', name: '🎙️ Recording Studio', desc: 'Grammy-worthy percussion.', baseCost: 12000, baseCps: 30 },
+      { id: 'festival', name: '🎪 Bombo Festival', desc: 'Thousands dance. Duo watches.', baseCost: 60000, baseCps: 100 },
+      { id: 'radio', name: '📻 Radio Empire', desc: 'Your beats on every station.', baseCost: 300000, baseCps: 400 },
+      { id: 'factory', name: '🏭 Beat Factory', desc: 'Industrial percussion. Very loud.', baseCost: 1500000, baseCps: 1500 },
+      { id: 'satellite', name: '🛸 Orbital Drum Sat.', desc: 'Broadcasting from space orbit.', baseCost: 10000000, baseCps: 6000 },
+      { id: 'dimension', name: '🌀 Rhythm Dimension', desc: 'Beats from alternate universes.', baseCost: 75000000, baseCps: 25000 },
+      { id: 'concert', name: '🎤 Bombo Concert', desc: 'Sold-out stadiums every night!', baseCost: 500000000, baseCps: 50000 },
+      { id: 'arena', name: '🏟️ Mega Arena', desc: '100,000 fans drumming with you!', baseCost: 2500000000, baseCps: 250000 },
+      { id: 'planet', name: '🪐 Galactic Tour', desc: 'Beats heard on every planet!', baseCost: 15000000000, baseCps: 1200000 },
+      { id: 'universe', name: '🌌 Cosmic Orchestra', desc: 'The whole universe is your band!', baseCost: 100000000000, baseCps: 8000000 },
+      { id: 'god', name: '👑 Duo God Mode', desc: 'You ARE the rhythm of existence!', baseCost: 1000000000000, baseCps: 50000000 }
+    ];
+
+    const UPGRADES = [
+      { id: 'u1', ico: '🦉', name: "Duo's First Warning", desc: "He knocked once. +2× click power.", cost: 100, req: 0, apply: s => { s.cm *= 2 } },
+      { id: 'u2', ico: '📱', name: "Streak Reminder Notification", desc: "7 in a row. Finger is warmed up. +3× clicks.", cost: 800, req: 50, apply: s => { s.cm *= 3 } },
+      { id: 'u3', ico: '💎', name: "Lingot Overdose", desc: "So many lingots, hands shake faster. +5× clicks.", cost: 5000, req: 200, apply: s => { s.cm *= 5 } },
+      { id: 'u4', ico: '😤', name: "Duo Went Full Villain", desc: "Final warning issued. +10× clicks.", cost: 50000, req: 1000, apply: s => { s.cm *= 10 } },
+      { id: 'u5', ico: '🏆', name: "365-Day Certified Insane", desc: "Trophy earned. You scare people. +20× clicks.", cost: 500000, req: 5000, apply: s => { s.cm *= 20 } },
+      { id: 'u6', ico: '💎', name: "Diamond League Supremacy", desc: "Clicks earn +3% of CPS too.", cost: 25000, req: 500, apply: s => { s.gt = true } },
+      { id: 'u7', ico: '🔥', name: "Streak Shield Pro Max", desc: "Your streak protects ALL. +50× clicks.", cost: 8000000, req: 50000, apply: s => { s.cm *= 50 } },
+      { id: 'u8', ico: '🤖', name: "Auto-Tapper (Loaned from Duo)", desc: "+5 auto clicks/sec. Return it when done.", cost: 400, req: 0, apply: s => { s.ac += 5 } },
+      { id: 'u9', ico: '🦿', name: "Duo's Robo-Arms Mk2", desc: "+12 auto clicks/sec. Upgraded model.", cost: 8000, req: 100, apply: s => { s.ac += 12 } },
+      { id: 'u10', ico: '🌐', name: "Duo Multiverse Hands", desc: "+35 auto clicks/sec from all timelines.", cost: 100000, req: 1000, apply: s => { s.ac += 35 } },
+      { id: 'u11', ico: '⚡', name: "Lingot Energy Drink", desc: "+60 auto clicks/sec. Unhinged amount.", cost: 1000000, req: 5000, apply: s => { s.ac += 60 } },
+      { id: 'u12', ico: '📚', name: "Shaker 101: Passed!", desc: "Duo gave an A+. Shakers ×2.", cost: 300, req: 0, apply: s => { s.bm.shaker *= 2 } },
+      { id: 'u13', ico: '🎵', name: "Tambourine Streak Bonus", desc: "Tambourines ×2. ¡Muy impresionante!", cost: 2000, req: 0, apply: s => { s.bm.tamb *= 2 } },
+      { id: 'u14', ico: '🥁', name: "Drummer Placement Test", desc: "You placed advanced. Drummers ×2.", cost: 10000, req: 0, apply: s => { s.bm.drummer *= 2 } },
+      { id: 'u15', ico: '🎷', name: "Band: Advanced Course", desc: "Brass Bands ×2. ¡Excelente progreso!", cost: 50000, req: 0, apply: s => { s.bm.band *= 2 } },
+      { id: 'u16', ico: '🎙️', name: "Studio: Platinum Lesson", desc: "Studios ×2. Duo gave 5 stars.", cost: 200000, req: 0, apply: s => { s.bm.studio *= 2 } },
+      { id: 'u17', ico: '🎪', name: "Festival VIP Lanyard", desc: "Festivals ×2. Duo is headlining.", cost: 1000000, req: 0, apply: s => { s.bm.festival *= 2 } },
+      { id: 'u18', ico: '📻', name: "Broadcasting License", desc: "Radio Empires ×2. FCC confused.", cost: 5000000, req: 0, apply: s => { s.bm.radio *= 2 } },
+      { id: 'u19', ico: '🔊', name: "Duo's Mega Bass Drop", desc: "ALL buildings ×1.5. BOOM.", cost: 500000, req: 5000, apply: s => { for (let k in s.bm) s.bm[k] *= 1.5 } },
+      { id: 'u20', ico: '🦉', name: "\"Duo Said So\" Executive Order", desc: "EVERYTHING ×2. Non-negotiable.", cost: 5000000, req: 50000, apply: s => { for (let k in s.bm) s.bm[k] *= 2; s.cm *= 2 } },
+      { id: 'u21', ico: '💰', name: "XP-to-Lingot Converter", desc: "CPS-to-click bonus is now ×4.", cost: 2000000, req: 10000, apply: s => { s.gb = (s.gb || 0.03) + 0.09 } },
+      { id: 'u22', ico: '🌙', name: "Night Owl Certification", desc: "All building multipliers ×2.", cost: 20000000, req: 100000, apply: s => { for (let k in s.bm) s.bm[k] *= 2 } },
+      { id: 'u23', ico: '🎯', name: "Crit Lesson Mastery", desc: "Critical hits now deal ×15 damage.", cost: 300000, req: 3000, apply: s => { s.critM = 15 } },
+      { id: 'u24', ico: '📖', name: "Complete the Tree", desc: "Click 10% of CPS as bonus.", cost: 15000000, req: 80000, apply: s => { s.gb = (s.gb || 0.03) + 0.1 } },
+      { id: 'u25', ico: '🦉', name: "Duo's Final Form", desc: "×10 everything forever. No mercy.", cost: 50000000, req: 500000, apply: s => { s.sM = (s.sM || 1) * 10; for (let k in s.bm) s.bm[k] *= 3 } },
+      { id: 'u26', ico: '🔥', name: "Inferno Streak", desc: "Combo never decays below 5×", cost: 75000000, req: 750000, apply: s => { s.minCombo = 5 } },
+      { id: 'u27', ico: '💎', name: "Lingot Tsunami", desc: "+25% of CPS on every click", cost: 120000000, req: 1000000, apply: s => { s.gb = (s.gb || 0.03) + 0.25 } },
+      { id: 'u28', ico: '🚀', name: "Hyper Drive", desc: "All buildings ×4", cost: 200000000, req: 2000000, apply: s => { for (let k in s.bm) s.bm[k] *= 4 } },
+      { id: 'u29', ico: '🌟', name: "Golden Rain", desc: "Golden Bombos spawn 3× faster & give ×8", cost: 350000000, req: 5000000, apply: s => { s.gM = (s.gM || 1) * 8 } },
+      { id: 'u30', ico: '⚡', name: "Lightning Fingers", desc: "+300 auto clicks/sec", cost: 500000000, req: 10000000, apply: s => { s.ac += 300 } },
+      { id: 'u31', ico: '🌀', name: "Rhythm Vortex", desc: "Critical hits ×30 damage", cost: 800000000, req: 20000000, apply: s => { s.critM = 30 } },
+      { id: 'u32', ico: '🎉', name: "Party Mode", desc: "Every 10 clicks = free 50K bombos", cost: 1200000000, req: 50000000, apply: s => { s.partyMode = true } },
+      { id: 'u33', ico: '🏆', name: "Legendary Drummer", desc: "All production ×5", cost: 2500000000, req: 100000000, apply: s => { s.sM = (s.sM || 1) * 5 } },
+      { id: 'u34', ico: '🦸', name: "Super Duo", desc: "Click power ×25", cost: 5000000000, req: 500000000, apply: s => { s.cm *= 25 } },
+      { id: 'u35', ico: '🌈', name: "Rainbow Ascension", desc: "Ascension multiplier ×2 extra", cost: 10000000000, req: 1000000000, apply: s => { s.ascMultiplier *= 2 } },
+      { id: 'u36', ico: '⏳', name: "Time Lord", desc: "Time Warp lasts 3 minutes", cost: 25000000000, req: 5000000000, apply: s => { s.twBonus = 180 } },
+      { id: 'u37', ico: '🧨', name: "Explosive Combo", desc: "Combo above 10× gives ×10 clicks", cost: 50000000000, req: 10000000000, apply: s => { s.explodeCombo = true } },
+      { id: 'u38', ico: '👑', name: "Emperor of Beats", desc: "All buildings ×10", cost: 100000000000, req: 50000000000, apply: s => { for (let k in s.bm) s.bm[k] *= 10 } },
+      { id: 'u39', ico: '🔱', name: "Trident of Rhythm", desc: "Crit chance 25%", cost: 250000000000, req: 100000000000, apply: s => { s.critChance = 0.25 } },
+      { id: 'u40', ico: '🪩', name: "Disco Inferno", desc: "Golden Bombos give random 100K-10M", cost: 500000000000, req: 500000000000, apply: s => { s.goldenJackpot = true } },
+      { id: 'u41', ico: '🌌', name: "Cosmic Clicker", desc: "Click power ×100", cost: 1e12, req: 1e12, apply: s => { s.cm *= 100 } },
+      { id: 'u42', ico: '🏰', name: "Bombo Kingdom", desc: "All production ×20", cost: 2.5e12, req: 2.5e12, apply: s => { s.sM = (s.sM || 1) * 20 } },
+      { id: 'u43', ico: '⚔️', name: "Epic Battle Mode", desc: "Crits now chain (×2 each)", cost: 5e12, req: 5e12, apply: s => { s.critChain = true } },
+      { id: 'u44', ico: '🕹️', name: "Arcade Legend", desc: "+1000 auto clicks/sec", cost: 1e13, req: 1e13, apply: s => { s.ac += 1000 } },
+      { id: 'u45', ico: '🌠', name: "Shooting Star Rush", desc: "Golden spawn 10× faster", cost: 2.5e13, req: 2.5e13, apply: s => { } },
+      { id: 'u46', ico: '🧬', name: "Genetic Rhythm", desc: "Buildings produce 50% more per owned", cost: 5e13, req: 5e13, apply: s => { s.bonusPerOwned = true } },
+      { id: 'u47', ico: '🪄', name: "Magic Drumstick", desc: "Every click has 10% chance for 1M bonus", cost: 1e14, req: 1e14, apply: s => { s.magicStick = true } },
+      { id: 'u48', ico: '🏅', name: "Olympic Drummer", desc: "Combo max now 50×", cost: 2.5e14, req: 2.5e14, apply: s => { s.maxComboCap = 50 } },
+      { id: 'u49', ico: '🚀', name: "Interstellar Tour", desc: "All production ×50", cost: 5e14, req: 5e14, apply: s => { s.sM = (s.sM || 1) * 50 } },
+      { id: 'u50', ico: '🌍', name: "World Record Breaker", desc: "Click power ×500", cost: 1e15, req: 1e15, apply: s => { s.cm *= 500 } },
+      { id: 'u51', ico: '🦄', name: "Mythical Bombo", desc: "Golden gives ×50", cost: 2.5e15, req: 2.5e15, apply: s => { s.gM = (s.gM || 1) * 50 } },
+      { id: 'u52', ico: '🧙', name: "Wizard of Beats", desc: "All upgrades 50% cheaper", cost: 5e15, req: 5e15, apply: s => { s.upgDiscount = 0.5 } },
+      { id: 'u53', ico: '👾', name: "Pixel Perfect", desc: "Auto clicks also crit", cost: 1e16, req: 1e16, apply: s => { s.autoCrit = true } },
+      { id: 'u54', ico: '🌟', name: "Eternal Rhythm God", desc: "×1000 everything. You win the game.", cost: 5e16, req: 5e16, apply: s => { s.sM = (s.sM || 1) * 1000; s.cm *= 1000; for (let k in s.bm) s.bm[k] *= 1000 } }
+    ];
+
+    const SHOP_ITEMS = [
+      { id: 's1', ico: '🦉', name: "Hire Duo Full-Time", desc: 'Duo personally manages your empire. +60% CPS forever.', cost: 50000, req: 1000, apply: s => { s.sM = (s.sM || 1) * 1.6 }, reuse: false },
+      { id: 's2', ico: '⏰', name: "Time Warp Lesson", desc: '10× production for 60 seconds! Repeatable.', cost: 100000, req: 2000, apply: s => { activateTimeWarp() }, reuse: true },
+      { id: 's3', ico: '🎖️', name: "Lingot Multiplier X", desc: 'Permanent ×2 on ALL production and clicks.', cost: 250000, req: 5000, apply: s => { s.sM = (s.sM || 1) * 2 }, reuse: false },
+      { id: 's4', ico: '🌍', name: "World Bombo Tour", desc: '+8000 permanent CPS. Mi Bombo goes global.', cost: 1000000, req: 10000, apply: s => { s.bonusCps = (s.bonusCps || 0) + 8000 }, reuse: false },
+      { id: 's5', ico: '🎯', name: "Perfect Score Syndrome", desc: 'Critical hit chance doubled to 10%.', cost: 300000, req: 3000, apply: s => { s.critChance = 0.1 }, reuse: false },
+      { id: 's6', ico: '🏅', name: "Golden Owl Certificate", desc: 'Golden Bombos give 5× more bombos.', cost: 200000, req: 2000, apply: s => { s.gM = (s.gM || 1) * 5 }, reuse: false },
+      { id: 's7', ico: '🚀', name: "Rocket Ship Lesson", desc: 'Orbital Satellite ×5 multiplier.', cost: 5000000, req: 50000, apply: s => { s.bm.satellite = (s.bm.satellite || 1) * 5 }, reuse: false },
+      { id: 's8', ico: '🎁', name: "Surprise Gift Box", desc: 'Random big bonus! (25K–500K bombos). Repeatable.', cost: 75000, req: 500, apply: s => { surpriseGift(s) }, reuse: true },
+      { id: 's9', ico: '🎰', name: "Duo's Lucky Charm", desc: '5% chance each click triggers a bonus burst.', cost: 500000, req: 5000, apply: s => { s.luckyCharm = true }, reuse: false },
+      { id: 's10', ico: '🌟', name: "Prestige Shop Bundle", desc: 'All buildings get a permanent ×1.5 boost.', cost: 2000000, req: 20000, apply: s => { for (let k in s.bm) s.bm[k] *= 1.5 }, reuse: false }
+    ];
+
+    const ASCEND_TIERS = [
+      { id: 'a0', ico: '🌱', name: 'Seedling Linguist', cost: 1, req: 1e6, desc: "First ascension. The owl nods with approval.", perks: ['×1.5 permanent multiplier', 'Unlock Ascend bonuses', 'Duo respects you slightly', 'Golden Bombo appears more often'] },
+      { id: 'a1', ico: '🌿', name: 'Growing Learner', cost: 2, req: 5e6, desc: "You're getting the hang of this drumming thing.", perks: ['×2.5 permanent multiplier', 'Critical hit damage +50%', 'Combo decay is 20% slower', 'Auto-clicks +50% speed'] },
+      { id: 'a2', ico: '⭐', name: 'Star Student', cost: 3, req: 1e7, desc: "Duo puts your picture on the refrigerator.", perks: ['×4 permanent multiplier', 'Daily rewards doubled', 'All upgrades cost 20% less', 'Golden Bombo bonus ×2'] },
+      { id: 'a3', ico: '💎', name: 'Diamond Scholar', cost: 5, req: 5e7, desc: "Officially more dedicated than 99% of users.", perks: ['×7 permanent multiplier', 'All buildings ×1.5 base', 'Combo decay 40% slower', 'Crit chance +5%'] },
+      { id: 'a4', ico: '🔥', name: 'Streak Immortal', cost: 8, req: 1e8, desc: "Your streak cannot die. Neither can you.", perks: ['×12 permanent multiplier', 'Click power ×3 bonus', 'Daily reward ×3', 'Golden Bombo bonus ×3'] },
+      { id: 'a5', ico: '🌈', name: 'Owl Whisperer', cost: 13, req: 1e9, desc: "You have tamed Duo himself. He is your friend now.", perks: ['×20 permanent multiplier', 'ALL production ×3', 'Mi Bombo achieves enlightenment', 'Unlock rainbow particles'] },
+      { id: 'a6', ico: '🌠', name: 'Cosmic Legend', cost: 21, req: 1e10, desc: "You are a living legend.", perks: ['×50 permanent multiplier', 'Golden ×10', 'Crit ×5'] },
+      { id: 'a7', ico: '👑', name: 'Bombo Deity', cost: 34, req: 1e12, desc: "You ARE the game now.", perks: ['×200 permanent multiplier', 'Everything ×10', 'Infinite combo'] }
+    ];
+
+    const ACHIEVEMENTS = [
+      { id: 'a1', ico: '🥁', name: "First Beat", desc: 'Click Mi Bombo for the first time.', check: s => s.tc >= 1 },
+      { id: 'a2', ico: '💯', name: "100 Bombos", desc: 'Earn 100 total bombos.', check: s => s.te >= 100 },
+      { id: 'a3', ico: '🎯', name: "Getting Serious", desc: 'Earn 10,000 total bombos.', check: s => s.te >= 10000 },
+      { id: 'a4', ico: '🌟', name: "Lingot Millionaire", desc: 'Earn 1,000,000 total bombos.', check: s => s.te >= 1e6 },
+      { id: 'a5', ico: '🔥', name: "Combo Master", desc: 'Reach a 15× combo.', check: s => s.maxCombo >= 15 },
+      { id: 'a6', ico: '💫', name: "Speed Demon", desc: 'Click 500 times total.', check: s => s.tc >= 500 },
+      { id: 'a7', ico: '🏗️', name: "Builder", desc: 'Buy your first building.', check: s => Object.values(s.buildings).some(v => v > 0) },
+      { id: 'a8', ico: '🏰', name: "Empire Builder", desc: 'Own 50 buildings total.', check: s => totalBld(s) >= 50 },
+      { id: 'a9', ico: '🌍', name: "World Domination", desc: 'Own 200 buildings total.', check: s => totalBld(s) >= 200 },
+      { id: 'a10', ico: '⚡', name: "Upgrade Addict", desc: 'Buy 5 upgrades.', check: s => Object.keys(s.bought).length >= 5 },
+      { id: 'a11', ico: '💎', name: "Completionist", desc: 'Buy all upgrades.', check: s => Object.keys(s.bought).length >= UPGRADES.length },
+      { id: 'a12', ico: '🌟', name: "Golden Hunter", desc: 'Catch your first Golden Bombo.', check: s => s.gc >= 1 },
+      { id: 'a13', ico: '🏆', name: "Golden Champion", desc: 'Catch 10 Golden Bombos.', check: s => s.gc >= 10 },
+      { id: 'a14', ico: '✨', name: "First Ascension", desc: 'Ascend for the first time.', check: s => s.ascLevel >= 1 },
+      { id: 'a15', ico: '🌈', name: "Ascension Master", desc: 'Reach Ascension level 4.', check: s => s.ascLevel >= 4 },
+      { id: 'a16', ico: '🥇', name: "Leaderboard Star", desc: 'Submit your score.', check: s => s.lbSubmitted },
+      { id: 'a17', ico: '🌙', name: "Night Owl", desc: 'Have CPS over 1,000.', check: s => s.cps >= 1000 },
+      { id: 'a18', ico: '🚀', name: "To The Moon", desc: 'Have CPS over 100,000.', check: s => s.cps >= 100000 },
+      { id: 'a19', ico: '🎪', name: "Festival Mogul", desc: 'Own 20 Bombo Festivals.', check: s => s.buildings.festival >= 20 },
+      { id: 'a20', ico: '🎭', name: "Auto Pilot", desc: 'Have 50+ auto clicks/sec.', check: s => s.ac >= 50 },
+      { id: 'a21', ico: '🔱', name: "10 Billion Club", desc: 'Earn 10 billion bombos.', check: s => s.te >= 1e10 },
+      { id: 'a22', ico: '🦉', name: "Duo's Bestie", desc: 'Buy from the shop.', check: s => s.shopBought.length >= 1 },
+      { id: 'a23', ico: '💀', name: "Skull Mode", desc: 'Earn 1 trillion bombos.', check: s => s.te >= 1e12 },
+      { id: 'a24', ico: '🌺', name: "Survived Duo", desc: "Withstand an owl threat.", check: s => s.owlSurvived >= 1 },
+      { id: 'a25', ico: '📅', name: "Daily Devotion", desc: 'Collect a daily reward.', check: s => s.dailysClaimed >= 1 },
+      { id: 'a26', ico: '🗓️', name: "Weekly Warrior", desc: 'Log in 7 days in a row.', check: s => s.loginStreak >= 7 },
+      { id: 'a27', ico: '💥', name: "Crit King", desc: 'Land 50 critical hits.', check: s => s.crits >= 50 },
+      { id: 'a28', ico: '🎰', name: "Gift Gambler", desc: 'Open a Surprise Gift Box.', check: s => s.giftsOpened >= 1 },
+      { id: 'a29', ico: '⏰', name: "Time Warp", desc: 'Activate Time Warp.', check: s => s.timeWarps >= 1 },
+      { id: 'a30', ico: '🏅', name: "Challenge Finisher", desc: 'Complete 5 challenges.', check: s => s.challengesDone >= 5 },
+      { id: 'a31', ico: '🎓', name: "Graduation Day", desc: 'Complete 15 challenges.', check: s => s.challengesDone >= 15 },
+      { id: 'a32', ico: '🌊', name: "Combo Tsunami", desc: 'Reach 20× combo.', check: s => s.maxCombo >= 20 },
+      { id: 'a33', ico: '🏹', name: "Crit Machine", desc: 'Land 200 critical hits.', check: s => s.crits >= 200 },
+      { id: 'a34', ico: '📖', name: "Tree Complete", desc: 'Buy from all 10 building types.', check: s => BUILDINGS.every(b => s.buildings[b.id] > 0) },
+      { id: 'a35', ico: '🦊', name: "Sneaky Clicker", desc: 'Click 5000 times total.', check: s => s.tc >= 5000 },
+      { id: 'a36', ico: '🚀', name: "Hyper Speed", desc: 'Reach 1M CPS.', check: s => s.cps >= 1000000 },
+      { id: 'a37', ico: '🌌', name: "Universe Drummer", desc: 'Own 1000 buildings total.', check: s => totalBld(s) >= 1000 },
+      { id: 'a38', ico: '💰', name: "Trillionaire", desc: 'Earn 1 trillion bombos.', check: s => s.te >= 1e12 },
+      { id: 'a39', ico: '🔥', name: "Combo God", desc: 'Reach 30× combo.', check: s => s.maxCombo >= 30 },
+      { id: 'a40', ico: '🦉', name: "Duo Slayer", desc: 'Survive 50 owl threats.', check: s => s.owlSurvived >= 50 },
+      { id: 'a41', ico: '🏆', name: "All Challenges", desc: 'Complete every quest.', check: s => s.challengesDone >= 30 },
+      { id: 'a42', ico: '🌟', name: "Golden Legend", desc: 'Catch 100 Golden Bombos.', check: s => s.gc >= 100 },
+      { id: 'a43', ico: '⚡', name: "Click Apocalypse", desc: 'Click 100,000 times.', check: s => s.tc >= 100000 },
+      { id: 'a44', ico: '👑', name: "True Deity", desc: 'Reach Ascension level 7.', check: s => s.ascLevel >= 7 },
+      { id: 'a45', ico: '🎮', name: "Perfectionist", desc: 'Buy every upgrade.', check: s => Object.keys(s.bought).length >= UPGRADES.length }
+    ];
+
+    const CHALLENGE_DEFS = [
+      { id: 'c1', ico: '👆', name: "Morning Warm-Up", desc: 'Click Mi Bombo 50 times.', type: 'clicks', goal: 50, reward: 500, timeLimit: 3600, league: 'bronze', section: 'Daily' },
+      { id: 'c2', ico: '💰', name: "Small Saver", desc: 'Earn 5,000 bombos today.', type: 'earn', goal: 5000, reward: 1000, timeLimit: 86400, league: 'bronze', section: 'Daily' },
+      { id: 'c3', ico: '🏗️', name: "First Steps", desc: 'Buy any 3 buildings.', type: 'buy_bld', goal: 3, reward: 1000, timeLimit: 3600, league: 'bronze', section: 'Daily' },
+      { id: 'c4', ico: '⚡', name: "Power Session", desc: 'Click Mi Bombo 200 times.', type: 'clicks', goal: 200, reward: 3000, timeLimit: 7200, league: 'silver', section: 'Skills' },
+      { id: 'c5', ico: '🔥', name: "Combo Keeper", desc: 'Maintain 5× combo for 15 seconds.', type: 'combo', goal: 15, reward: 5000, timeLimit: 1800, league: 'silver', section: 'Skills' },
+      { id: 'c6', ico: '💰', name: "Lingot Hoarder", desc: 'Earn 50,000 bombos today.', type: 'earn', goal: 50000, reward: 8000, timeLimit: 86400, league: 'silver', section: 'Skills' },
+      { id: 'c7', ico: '🌟', name: "Golden Rush", desc: 'Catch 3 Golden Bombos.', type: 'golden', goal: 3, reward: 20000, timeLimit: 86400, league: 'silver', section: 'Skills' },
+      { id: 'c8', ico: '⚡', name: "Speed Clicker", desc: 'Click 500 times.', type: 'clicks', goal: 500, reward: 15000, timeLimit: 3600, league: 'gold', section: 'Advanced' },
+      { id: 'c9', ico: '🏭', name: "Industrial Output", desc: 'Earn 500,000 bombos today.', type: 'earn', goal: 500000, reward: 50000, timeLimit: 86400, league: 'gold', section: 'Advanced' },
+      { id: 'c10', ico: '💥', name: "Crit Machine", desc: 'Land 20 critical hits.', type: 'crits', goal: 20, reward: 25000, timeLimit: 7200, league: 'gold', section: 'Advanced' },
+      { id: 'c11', ico: '🔱', name: "Combo God", desc: 'Reach 18× combo.', type: 'maxcombo', goal: 18, reward: 40000, timeLimit: 3600, league: 'gold', section: 'Advanced' },
+      { id: 'c12', ico: '🎪', name: "Festival Season", desc: 'Buy 5 Bombo Festivals.', type: 'buy_id', goal: 5, reward: 100000, timeLimit: 86400, league: 'diamond', section: 'Elite', targetId: 'festival' },
+      { id: 'c13', ico: '💫', name: "Upgrade Spree", desc: 'Buy 3 upgrades today.', type: 'buy_upg', goal: 3, reward: 30000, timeLimit: 86400, league: 'diamond', section: 'Elite' },
+      { id: 'c14', ico: '🌀', name: "Mega Producer", desc: 'Earn 5,000,000 bombos today.', type: 'earn', goal: 5000000, reward: 500000, timeLimit: 86400, league: 'diamond', section: 'Elite' },
+      { id: 'c15', ico: '🏆', name: "Click Champion", desc: 'Click 1000 times total.', type: 'clicks', goal: 1000, reward: 80000, timeLimit: 86400, league: 'diamond', section: 'Elite' },
+      { id: 'c16', ico: '🏟️', name: "Arena Rush", desc: 'Buy 10 Mega Arenas.', type: 'buy_id', goal: 10, reward: 500000, timeLimit: 86400, league: 'diamond', section: 'Elite', targetId: 'arena' },
+      { id: 'c17', ico: '🌌', name: "Galactic Clicker", desc: 'Click 5000 times today.', type: 'clicks', goal: 5000, reward: 250000, timeLimit: 86400, league: 'diamond', section: 'Elite' },
+      { id: 'c18', ico: '💥', name: "Crit Storm", desc: 'Land 100 critical hits.', type: 'crits', goal: 100, reward: 300000, timeLimit: 3600, league: 'diamond', section: 'Elite' },
+      { id: 'c19', ico: '🎪', name: "Festival Overload", desc: 'Earn 50M bombos today.', type: 'earn', goal: 50000000, reward: 1000000, timeLimit: 86400, league: 'diamond', section: 'Elite' },
+      { id: 'c20', ico: '🌀', name: "Dimension Master", desc: 'Reach 40× combo.', type: 'maxcombo', goal: 40, reward: 750000, timeLimit: 1800, league: 'diamond', section: 'Elite' },
+      { id: 'c21', ico: '🛸', name: "Orbital Gold", desc: 'Catch 15 Golden Bombos.', type: 'golden', goal: 15, reward: 2000000, timeLimit: 86400, league: 'diamond', section: 'Elite' },
+      { id: 'c22', ico: '🏭', name: "Factory Empire", desc: 'Own 50 Beat Factories.', type: 'buy_id', goal: 50, reward: 3000000, timeLimit: 86400, league: 'diamond', section: 'Elite', targetId: 'factory' },
+      { id: 'c23', ico: '🌠', name: "Shooting Star", desc: 'Click 10000 times.', type: 'clicks', goal: 10000, reward: 1500000, timeLimit: 7200, league: 'diamond', section: 'Elite' },
+      { id: 'c24', ico: '🪐', name: "Planetary Takeover", desc: 'Earn 500M bombos today.', type: 'earn', goal: 500000000, reward: 5000000, timeLimit: 86400, league: 'diamond', section: 'Elite' },
+      { id: 'c25', ico: '👑', name: "King of Beats", desc: 'Buy 20 upgrades today.', type: 'buy_upg', goal: 20, reward: 4000000, timeLimit: 86400, league: 'diamond', section: 'Elite' },
+      { id: 'c26', ico: '🌈', name: "Rainbow Combo", desc: 'Maintain 20× combo for 60 seconds.', type: 'combo', goal: 60, reward: 2500000, timeLimit: 3600, league: 'diamond', section: 'Elite' },
+      { id: 'c27', ico: '🦸', name: "Hero Clicker", desc: 'Land 500 critical hits.', type: 'crits', goal: 500, reward: 8000000, timeLimit: 86400, league: 'diamond', section: 'Elite' },
+      { id: 'c28', ico: '🎤', name: "Concert Legend", desc: 'Buy 30 Bombo Concerts.', type: 'buy_id', goal: 30, reward: 10000000, timeLimit: 86400, league: 'diamond', section: 'Elite', targetId: 'concert' },
+      { id: 'c29', ico: '🌌', name: "Cosmic Hoarder", desc: 'Earn 5B bombos today.', type: 'earn', goal: 5000000000, reward: 25000000, timeLimit: 86400, league: 'diamond', section: 'Elite' },
+      { id: 'c30', ico: '👑', name: "Ultimate Quest", desc: 'Reach 50× combo.', type: 'maxcombo', goal: 50, reward: 50000000, timeLimit: 3600, league: 'diamond', section: 'Elite' }
+    ];
+
+    const MILESTONES = [
+      { id: 'm1', label: '10', target: 10 }, { id: 'm2', label: '100', target: 100 },
+      { id: 'm3', label: '1K', target: 1000 }, { id: 'm4', label: '10K', target: 10000 },
+      { id: 'm5', label: '100K', target: 1e5 }, { id: 'm6', label: '1M', target: 1e6 },
+      { id: 'm7', label: '10M', target: 1e7 }, { id: 'm8', label: '1B', target: 1e9 },
+      { id: 'm9', label: '1T', target: 1e12 }
+    ];
+
+    const OWL_THREATS = [
+      "You haven't practiced today. I know where you live. 🏠",
+      "Interesting choice. I set your house on fire. Keep clicking. 🔥",
+      "Your family has been notified of your click rate. They're disappointed.",
+      "CLICK FASTER. I AM WATCHING YOU. ALWAYS. 👁️",
+      "This is your final warning. I mean it this time.",
+      "I've already called your mother. She's on her way.",
+      "You think this is a game? (It is. Click faster anyway.)",
+      "Mi Bombo is crying. Click harder or I will too.",
+      "Do you want to lose your streak? Because this is how you lose your streak.",
+      "Every second you don't click, a lingot disappears. FACT.",
+      "Duo has filed a formal complaint with your employer.",
+      "The UN has been alerted to your lack of practice. 🌍",
+      "You dare pause? I have your IP. 😈",
+      "Your streak is now mine. Click or lose it forever.",
+      "I just sent your scores to your boss. Good luck.",
+      "The drums are calling... answer them or face my wrath.",
+      "Duo is disappointed. Very disappointed.",
+      "Your neighbors can hear you not clicking. Fix it.",
+      "I will haunt your dreams if you stop now."
+    ];
+
+    const DAILY_REWARDS = [
+      { day: 1, ico: '🥁', label: 'Day 1', bonus: 500 },
+      { day: 2, ico: '💰', label: 'Day 2', bonus: 1500 },
+      { day: 3, ico: '⚡', label: 'Day 3', bonus: 4000 },
+      { day: 4, ico: '🌟', label: 'Day 4', bonus: 10000 },
+      { day: 5, ico: '🔥', label: 'Day 5', bonus: 25000 },
+      { day: 6, ico: '💎', label: 'Day 6', bonus: 75000 },
+      { day: 7, ico: '🏆', label: 'Day 7', bonus: 200000 }
+    ];
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCiCBebG0Q7dkwFkgIeBTHv2735EBUPbuw",
+      authDomain: "mibombo-8c061.firebaseapp.com",
+      databaseURL: "https://mibombo-8c061-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "mibombo-8c061",
+      storageBucket: "mibombo-8c061.firebasestorage.app",
+      messagingSenderId: "1080308009446",
+      appId: "1:1080308009446:web:9276ec6fb8b5db00e16e27"
+    };
+    let db = null;
+    function initFirebase() {
+      if (db) return;
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+    }
+
+    const MAX_NUMBER = 1.7976931348623157e308;
+    // FIX: MAX_SAFE was referenced but never defined in original code
+    const MAX_SAFE = Number.MAX_SAFE_INTEGER; // 9007199254740991
+
+    const TRANSCEND_TIERS = [
+      { id: 't0', ico: '🌌', name: 'First Transcend', cost: 8, reqTe: 1e90, multGain: 25, desc: "You shattered the first cosmic wall.", perks: ['×25 permanent multiplier', 'Golden Bombos spawn 3× faster', 'All buildings ×2 on every future Ascension'] },
+      { id: 't1', ico: '🌠', name: 'Omni-Rhythm', cost: 40, reqTe: 1e160, multGain: 100, desc: "Every beat echoes across infinite realities.", perks: ['×100 permanent multiplier', 'Crit damage ×3', 'Auto-clicks ×5'] },
+      { id: 't2', ico: '🕳️', name: 'Void Drummer', cost: 150, reqTe: 1e230, multGain: 500, desc: "You are the silence AND the thunder.", perks: ['×500 permanent multiplier', 'Combo never decays', 'CPS ×10'] },
+      { id: 't3', ico: '♾️', name: 'Eternal Bombo', cost: 800, reqTe: 1e290, multGain: 2000, desc: "There is no end. Only rhythm.", perks: ['×2000 permanent multiplier', 'Everything ×50', 'You win the game'] }
+    ];
+
+    const LB_KEY = 'mibombo-leaderboard-v1';
+    async function loadSharedLb() {
+      initFirebase();
+      try {
+        const snap = await db.ref(LB_KEY).once('value');
+        const data = snap.val();
+        return data ? Object.values(data) : [];
+      } catch (e) { return getLocalLb(); }
+    }
+    async function saveSharedLb(lb) {
+      initFirebase();
+      try {
+        lb.sort((a, b) => b.score - a.score);
+        await db.ref(LB_KEY).set(lb.slice(0, 50));
+        return lb.slice(0, 50);
+      } catch (e) { saveLocalLb(lb); return lb; }
+    }
+    async function submitToSharedLb(name, score, asc, flair) {
+      let lb = await loadSharedLb();
+      const week = getWeekStr();
+      const today = new Date().toDateString();
+      const entry = { name, score, asc, flair, week, day: today, ts: Date.now() };
+      const idx = lb.findIndex(e => e.name === name);
+      if (idx >= 0) {
+        if (score > lb[idx].score) lb[idx] = { ...lb[idx], ...entry };
+      } else {
+        lb.push(entry);
+      }
+      return await saveSharedLb(lb);
+    }
+    function getWeekStr() {
+      const d = new Date(), day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      return new Date(new Date(d).setDate(diff)).toDateString();
+    }
+    function getLocalLb() { try { return JSON.parse(localStorage.getItem('mbc_lb_v2') || '[]'); } catch (e) { return []; } }
+    function saveLocalLb(lb) { try { localStorage.setItem('mbc_lb_v2', JSON.stringify(lb.slice(0, 50))); } catch (e) { } }
+
+    const newState = () => ({
+      score: 0, te: 0, tc: 0, cm: 1, ac: 0, gt: false, gb: 0.03, critM: 10, critChance: 0.05,
+      bonusCps: 0, sM: 1, gM: 1, luckyCharm: false, cps: 0,
+      ascLevel: 0, ascPoints: 0, ascMultiplier: 1,
+      combo: 1, comboTimer: 0, maxCombo: 1,
+      gc: 0, crits: 0, giftsOpened: 0, timeWarps: 0, owlSurvived: 0, lbSubmitted: false,
+      challengesDone: 0, dailysClaimed: 0, loginStreak: 0,
+      lastSave: Date.now(), sessionStart: Date.now(), lastLogin: 0, lastDailyDate: '', dailyDay: 0,
+      buildings: Object.fromEntries(BUILDINGS.map(b => [b.id, 0])),
+      bm: Object.fromEntries(BUILDINGS.map(b => [b.id, 1])),
+      bought: {}, shopBought: [], achDone: {}, milestones: {},
+      chalProgress: {}, chalClaimed: {}, chalStarted: {},
+      chalSessionClicks: 0, chalSessionEarn: 0, chalSessionGolden: 0,
+      chalSessionBldBought: 0, chalSessionUpgBought: 0, chalSessionCrits: 0,
+      chalComboTimer: 0, chalMaxCombo: 0,
+      stats: { clicks: 0, bldBought: 0, upgBought: 0, timeWarps: 0, gifts: 0 },
+      minCombo: 1, partyMode: false, explodeCombo: false, goldenJackpot: false,
+      magicStick: false, bonusPerOwned: false, autoCrit: false, twBonus: 60, upgDiscount: 1, maxComboCap: 15,
+      transcendLevel: 0,
+      transcendMultiplier: 1,
+      transcendPoints: 0,
+    });
+
+    let S = newState();
+    let PERSIST = { ascLevel: 0, ascPoints: 0, ascMultiplier: 1, ascOwned: [], lbName: '', loginStreak: 0, lastLogin: 0, dailyDay: 0, lastDailyDate: '', bought: {}, shopBought: [], bm: {}, transcendLevel: 0, transcendMultiplier: 1, transcendPoints: 0, };
+    let autoSaveTimer = 0;
+
+    // FIX: Validate JSON before writing, handle NaN/Infinity, save actual CPS for offline calc
+    function saveGame() {
+      S.lastSave = Date.now();
+
+      const saveS = { ...S };
+      // Clamp bad values - use 0 not MAX_NUMBER to prevent runaway on next load
+      if (!isFinite(saveS.score) || isNaN(saveS.score) || saveS.score < 0) saveS.score = 0;
+      if (!isFinite(saveS.te) || isNaN(saveS.te) || saveS.te < 0) saveS.te = 0;
+      // Save the REAL current CPS so offline calc uses the correct value on next load
+      if (!isFinite(saveS.cps) || isNaN(saveS.cps) || saveS.cps < 0) saveS.cps = 0;
+
+      try {
+        const persistStr = JSON.stringify(PERSIST);
+        const stateStr = JSON.stringify(saveS);
+        // Validate JSON strings before writing (catches truncation/corruption risk)
+        JSON.parse(persistStr);
+        JSON.parse(stateStr);
+        localStorage.setItem('mbc_persist_v2', persistStr);
+        localStorage.setItem('mbc_state_v2', stateStr);
+      } catch (e) {
+        console.warn('Save failed:', e);
+      }
+
+      const el = document.getElementById('sf');
+      el.classList.add('on');
+      setTimeout(() => el.classList.remove('on'), 1500);
+    }
+
+    function loadGame() {
+      // FIX: Better error handling for corrupted persist data
+      try {
+        const rp = localStorage.getItem('mbc_persist_v2');
+        if (rp) {
+          try {
+            PERSIST = Object.assign(PERSIST, JSON.parse(rp));
+          } catch (parseErr) {
+            console.warn('Persist data corrupted, clearing:', parseErr);
+            localStorage.removeItem('mbc_persist_v2');
+          }
+        }
+      } catch (e) { }
+
+      // FIX: Capture saved CPS BEFORE applying upgrades so offline calc uses the correct value
+      let savedRawCps = 0;
+      let savedLastSave = Date.now();
+
+      try {
+        const rs = localStorage.getItem('mbc_state_v2');
+        if (!rs) return;
+
+        // FIX: Separate JSON parse with its own try/catch so corruption clears the save
+        let sv;
+        try {
+          sv = JSON.parse(rs);
+        } catch (parseErr) {
+          console.warn('State data corrupted, clearing save:', parseErr);
+          localStorage.removeItem('mbc_state_v2');
+          return;
+        }
+
+        // Capture the CPS and lastSave from the raw save BEFORE any upgrade multipliers are applied
+        savedRawCps = (sv.cps && isFinite(sv.cps) && sv.cps > 0) ? sv.cps : 0;
+        savedLastSave = (sv.lastSave && isFinite(sv.lastSave)) ? sv.lastSave : Date.now();
+
+        S = newState();
+        Object.keys(sv).forEach(k => { if (k in S) S[k] = sv[k]; });
+        if (sv.buildings) Object.assign(S.buildings, sv.buildings);
+        if (sv.bm) Object.assign(S.bm, sv.bm);
+        if (sv.bought) Object.assign(S.bought, sv.bought);
+        if (sv.shopBought) S.shopBought = sv.shopBought;
+        if (sv.achDone) Object.assign(S.achDone, sv.achDone);
+        if (sv.milestones) Object.assign(S.milestones, sv.milestones);
+        if (sv.chalProgress) Object.assign(S.chalProgress, sv.chalProgress);
+        if (sv.chalClaimed) Object.assign(S.chalClaimed, sv.chalClaimed);
+        if (sv.stats) Object.assign(S.stats, sv.stats);
+      } catch (e) { }
+
+      S.ascLevel = PERSIST.ascLevel || 0;
+      S.ascPoints = PERSIST.ascPoints || 0;
+      S.ascMultiplier = PERSIST.ascMultiplier || 1;
+      S.loginStreak = PERSIST.loginStreak || 0;
+      S.lastLogin = PERSIST.lastLogin || 0;
+      S.dailyDay = PERSIST.dailyDay || 0;
+      S.lastDailyDate = PERSIST.lastDailyDate || '';
+      if (PERSIST.bought) S.bought = PERSIST.bought;
+      if (PERSIST.shopBought) S.shopBought = PERSIST.shopBought;
+      if (PERSIST.bm) S.bm = PERSIST.bm;
+
+      S.transcendLevel = PERSIST.transcendLevel || 0;
+      S.transcendMultiplier = PERSIST.transcendMultiplier || 1;
+      S.transcendPoints = PERSIST.transcendPoints || 0;
+
+      BUILDINGS.forEach(b => { if (!(b.id in S.buildings)) S.buildings[b.id] = 0; if (!(b.id in S.bm)) S.bm[b.id] = 1; });
+
+      // Apply upgrades AFTER capturing savedRawCps - these boost S.cps but we don't use it for offline
+      // UPGRADES.forEach(u => { if (S.bought[u.id]) u.apply(S); });
+      // SHOP_ITEMS.forEach(item => { if (!item.reuse && S.shopBought.includes(item.id) && item.id !== 's2' && item.id !== 's8') item.apply(S); });
+
+      recalcCps();
+      checkLoginStreak();
+      // Offline earnings removed — caused score inflation on refresh
+    }
+
+    function closeOffline() { document.getElementById('offline-modal').classList.remove('on'); }
+    function closeReturn() { document.getElementById('return-modal').classList.remove('on'); }
+
+    function resetGame() {
+      if (!confirm('HARD RESET? All progress lost except ascension & achievements.')) return;
+
+      const achDone = { ...S.achDone };
+
+      S = newState();
+      S.achDone = achDone;
+
+      // Keep these
+      S.ascLevel = PERSIST.ascLevel;
+      S.ascPoints = PERSIST.ascPoints;
+      S.ascMultiplier = PERSIST.ascMultiplier;
+      S.loginStreak = PERSIST.loginStreak;
+      S.dailyDay = PERSIST.dailyDay;
+      S.lastDailyDate = PERSIST.lastDailyDate;
+
+      // Reset upgrades
+      PERSIST.bought = {};
+      PERSIST.shopBought = [];
+      PERSIST.bm = Object.fromEntries(BUILDINGS.map(b => [b.id, 1]));
+
+      recalcCps();
+      notify('🗑️ Full Hard Reset! Upgrades + buildings + everything non-ascension cleared.');
+
+      localStorage.setItem('mbc_persist_v2', JSON.stringify(PERSIST));
+      localStorage.removeItem('mbc_state_v2');
+
+      renderAll();
+      updateUI();
+    }
+
+    function checkLoginStreak() {
+      const today = new Date().toDateString();
+      if (S.lastDailyDate === today) return;
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      if (S.lastDailyDate === yesterday) { S.loginStreak = (S.loginStreak || 0) + 1; }
+      else if (S.lastDailyDate !== '') {
+        const daysMissed = Math.floor((Date.now() - new Date(S.lastDailyDate).getTime()) / 86400000);
+        if (daysMissed > 1) showReturnIncentive(daysMissed);
+        S.loginStreak = 1;
+      } else { S.loginStreak = 1; }
+      PERSIST.loginStreak = S.loginStreak;
+      setTimeout(showDailyReward, 1200);
+    }
+
+    function showReturnIncentive(daysMissed) {
+      const bonus = Math.floor(S.cps * 3600 * 0.5 * Math.min(daysMissed, 7));
+      if (bonus > 0) { S.score += bonus; S.te += bonus; }
+      document.getElementById('return-content').innerHTML = `<div style="font-size:13px;color:var(--duo-gray-400);font-weight:600;margin-top:6px">You've been away for <b>${daysMissed} days</b>! 😭<br>Your buildings earned you back <b style="color:var(--duo-green)">${fmt(bonus)} bombos</b> as a welcome gift!</div>`;
+      document.getElementById('return-modal').classList.add('on');
+    }
+
+    function showDailyReward() {
+      const dayIdx = (S.dailyDay % 7);
+      renderDailyDays(dayIdx);
+      document.getElementById('daily-modal').classList.add('on');
+      const reward = DAILY_REWARDS[dayIdx];
+      const multiplier = S.ascLevel >= 4 ? 3 : (S.ascLevel >= 2 ? 2 : 1);
+      document.getElementById('daily-reward-txt').textContent = `Day ${(S.loginStreak || 1)}: +${fmt(reward.bonus * multiplier)} bombos!${multiplier > 1 ? ` (×${multiplier} bonus)` : ''}`;
+    }
+
+    function renderDailyDays(todayIdx) {
+      const el = document.getElementById('daily-days');
+      el.innerHTML = DAILY_REWARDS.map((r, i) => {
+        const claimed = i < todayIdx, isToday = i === todayIdx;
+        return `<div class="dd ${claimed ? 'claimed' : ''} ${isToday ? 'today' : ''}"><span class="dd-ico">${r.ico}</span><span>${r.label}</span></div>`;
+      }).join('');
+    }
+
+    function claimDaily() {
+      const dayIdx = (S.dailyDay % 7), reward = DAILY_REWARDS[dayIdx];
+      const multiplier = S.ascLevel >= 4 ? 3 : (S.ascLevel >= 2 ? 2 : 1), bonus = reward.bonus * multiplier;
+      S.score += bonus; S.te += bonus; S.dailyDay++; S.dailysClaimed++;
+      S.lastDailyDate = new Date().toDateString();
+      PERSIST.dailyDay = S.dailyDay; PERSIST.lastDailyDate = S.lastDailyDate;
+      document.getElementById('daily-modal').classList.remove('on');
+      playDailySound(); spawnParts(window.innerWidth / 2, window.innerHeight / 2, 40, '#ffc800');
+      notify(`📅 +${fmt(bonus)} bombos! Day ${S.loginStreak} streak! 🔥`);
+      checkAchievements(); updateUI(); saveGame();
+    }
+
+    const clickTimes = []; let antiWarnShown = false;
+    function checkAntiAutoclick(now) {
+      clickTimes.push(now);
+      while (clickTimes.length && now - clickTimes[0] > 1000) clickTimes.shift();
+      if (clickTimes.length > 18) {
+        if (!antiWarnShown) { antiWarnShown = true; const el = document.getElementById('anti'); el.style.display = 'block'; setTimeout(() => { el.style.display = 'none'; antiWarnShown = false; }, 4000); }
+        return true;
+      } return false;
+    }
+
+    function recalcCps() {
+      let c = 0;
+      BUILDINGS.forEach(b => {
+        c += b.baseCps * (S.buildings[b.id] || 0) * (S.bm[b.id] || 1);
+      });
+      c += (S.bonusCps || 0);
+      S.cps = Math.min(MAX_NUMBER, c * S.ascMultiplier * (S.sM || 1) * (S.transcendMultiplier || 1));
+    }
+
+    function getClickPow() {
+      let p = Math.max(1, S.cm) * S.ascMultiplier * (S.sM || 1) * (S.transcendMultiplier || 1);
+      if (S.gt) p += S.cps * (S.gb || 0.03);
+      return Math.min(MAX_NUMBER, Math.max(1, p));
+    }
+
+    function totalBld(s) { return Object.values(s.buildings).reduce((a, b) => a + b, 0); }
+
+    function addScore(n) {
+      if (typeof n !== 'number' || !isFinite(n) || n < 0) n = 0;
+      S.score = Math.min(MAX_NUMBER, (S.score || 0) + n);
+      S.te = Math.min(MAX_NUMBER, (S.te || 0) + n);
+    }
+
+    const BASE_COMBO_DECAY = 3.5, COMBO_GAIN = 0.15, MAX_COMBO = 15, COMBO_HOLD_TIME = 1.0;
+    function addCombo() {
+      S.combo = Math.min(S.combo + COMBO_GAIN, S.maxComboCap || MAX_COMBO);
+      if (S.combo > S.maxCombo) S.maxCombo = S.combo;
+      S.comboTimer = COMBO_HOLD_TIME;
+      S.chalMaxCombo = Math.max(S.chalMaxCombo || 0, S.combo);
+      updateChallengeProgress('maxcombo', S.chalMaxCombo);
+      updateComboBar();
+    }
+    function decayCombo(dt) {
+      S.comboTimer -= dt;
+      if (S.comboTimer <= 0) {
+        const decayRate = BASE_COMBO_DECAY * (S.ascLevel >= 3 ? 0.6 : S.ascLevel >= 1 ? 0.8 : 1.0);
+        S.combo = Math.max(S.minCombo || 1, S.combo - dt * decayRate);
+        S.comboTimer = 0;
+      }
+      updateComboBar();
+    }
+    function updateComboBar() {
+      const pct = ((S.combo - 1) / ((S.maxComboCap || MAX_COMBO) - 1)) * 100;
+      const fill = document.getElementById('cmb-fill');
+      if (!fill) return;
+      fill.style.width = pct + '%';
+      fill.className = S.combo >= 8 ? 'hot' : '';
+      document.getElementById('cmb-txt').textContent = `COMBO ×${S.combo.toFixed(1)}`;
+    }
+
+    let twEnd = 0;
+    function activateTimeWarp() {
+      twEnd = Date.now() + ((S.twBonus || 60) * 1000);
+      S.timeWarps++;
+      const bar = document.getElementById('tw-bar'); bar.style.display = 'block'; bar.style.width = '100%';
+      showEvent('⏰ TIME WARP! 10× production for ' + (S.twBonus || 60) + ' seconds!');
+      checkAchievements();
+    }
+    function updateTWBar() {
+      if (!twEnd || Date.now() > twEnd) { document.getElementById('tw-bar').style.display = 'none'; return; }
+      const remaining = (twEnd - Date.now()) / ((S.twBonus || 60) * 1000);
+      document.getElementById('tw-bar').style.width = (remaining * 100) + '%';
+    }
+
+    function surpriseGift(s) {
+      const amt = Math.floor(25000 + Math.random() * 475000);
+      s.score += amt; s.te += amt; s.giftsOpened++;
+      showEvent(`🎁 Surprise Gift! +${fmt(amt)} bombos!`);
+      spawnParts(window.innerWidth / 2, 300, 30, '#ffd700');
+      checkAchievements();
+    }
+
+    const mb = document.getElementById('mb'); let btnDown = false;
+    mb.addEventListener('mousedown', e => { e.preventDefault(); if (btnDown) return; btnDown = true; handleClick(e.clientX, e.clientY); });
+    mb.addEventListener('mouseup', () => { btnDown = false; mb.classList.remove('dn'); });
+    mb.addEventListener('mouseleave', () => { btnDown = false; mb.classList.remove('dn'); });
+    mb.addEventListener('touchstart', e => { e.preventDefault(); if (btnDown) return; btnDown = true; const t = e.touches[0]; handleClick(t.clientX, t.clientY); }, { passive: false });
+    mb.addEventListener('touchend', () => { btnDown = false; mb.classList.remove('dn'); });
+
+    function handleClick(x, y) {
+      initAudio(); const now = Date.now(); if (checkAntiAutoclick(now)) return;
+      S.tc++; S.chalSessionClicks++; updateChallengeProgress('clicks', S.chalSessionClicks);
+      let base = getClickPow() * S.combo;
+      const isCrit = Math.random() < (S.critChance || 0.05);
+      let power = isCrit ? base * (S.critM || 10) : base;
+      if (S.luckyCharm && Math.random() < 0.05) { power *= 10; spawnFloat(x, y - 30, '🍀 LUCKY!', '#58cc02', true); }
+      if (isCrit) { S.crits++; S.chalSessionCrits++; updateChallengeProgress('crits', S.chalSessionCrits); }
+      if (S.magicStick && Math.random() < 0.1) { power += 1000000; spawnFloat(x, y - 30, '+1,000,000 MAGIC!', '#ce82ff', true); }
+      addScore(power); S.chalSessionEarn += power; addCombo();
+      if (isCrit) playCritSound(); else playBomboSound();
+      checkMilestones(); checkAchievements(); updateChallengeProgress('earn', S.chalSessionEarn);
+      const col = isCrit ? '#ff4b4b' : power > 10000 ? '#ffc800' : power > 100 ? '#58cc02' : '#3c3c3c';
+      spawnFloat(x, y, (isCrit ? '💥 CRIT! ' : '+') + fmt(power), col, isCrit);
+      spawnParts(x, y, isCrit ? 22 : 9, isCrit ? '#ff4b4b' : (S.ascLevel >= 5 ? '#ce82ff' : null));
+      mb.classList.add('dn'); setTimeout(() => mb.classList.remove('dn'), 90);
+      updateUI(); renderBldFast(); renderUpgFast(); saveGame();
+    }
+
+    function buyBuilding(id) {
+      const b = BUILDINGS.find(x => x.id === id);
+      let cost = Math.floor(b.baseCost * Math.pow(1.15, S.buildings[id] || 0));
+      if (S.score < cost) return;
+      S.score -= cost; S.buildings[id] = (S.buildings[id] || 0) + 1; S.stats.bldBought++; S.chalSessionBldBought++;
+      updateChallengeProgress('buy_bld', S.chalSessionBldBought);
+      updateChallengeProgress('buy_id_' + id, S.buildings[id]);
+      recalcCps(); playBuySound();
+      notify(`${b.name} purchased! (${S.buildings[id]})`);
+      checkAchievements(); updateUI(); renderBuildings(); renderUpgFast(); saveGame();
+    }
+
+    function buyUpgrade(id) {
+      const u = UPGRADES.find(x => x.id === id);
+      if (!u || S.bought[u.id]) return;
+
+      let cost = Math.floor(u.cost * (S.upgDiscount || 1));
+
+      if (S.score < cost || S.te < u.req) return;
+
+      S.score -= cost;
+      S.bought[id] = true;
+      S.stats.upgBought++;
+      S.chalSessionUpgBought++;
+      u.apply(S);
+      recalcCps();
+      playBuySound();
+      notify(`⚡ ${u.name} unlocked!`);
+      updateChallengeProgress('buy_upg', S.chalSessionUpgBought);
+      checkAchievements();
+      updateUI();
+      renderUpgrades();
+      renderBldFast();
+      saveGame();
+    }
+
+    function buyShopItem(id) {
+      const item = SHOP_ITEMS.find(x => x.id === id); if (!item) return;
+      if (!item.reuse && S.shopBought.includes(id)) return;
+      if (S.score < item.cost || S.te < item.req) return;
+      S.score -= item.cost; if (!item.reuse) S.shopBought.push(id);
+      item.apply(S); recalcCps(); playBuySound();
+      notify(`🛒 ${item.name} activated!`); checkAchievements(); updateUI(); renderShop(); saveGame();
+    }
+
+
+    function ascend() {
+      const nextTier = ASCEND_TIERS[S.ascLevel];
+      if (!nextTier) { notify('🌈 Maximum ascension reached!'); return; }
+      if (S.te < nextTier.req) { notify(`Need ${fmt(nextTier.req)} total bombos!`); return; }
+      if (S.ascPoints < nextTier.cost) { notify(`Need ${nextTier.cost} Ascension Points!`); return; }
+
+      if (!confirm(`ASCEND to "${nextTier.name}"?\n\n• Score + buildings + upgrades + shop will be RESET\n• You keep Ascension level, points, achievements & streak\n\nReady?`)) return;
+
+      const oldAscLevel = S.ascLevel;
+      const oldAscPoints = S.ascPoints - nextTier.cost;
+      const oldAscMultiplier = S.ascMultiplier;
+      const oldAch = { ...S.achDone };
+      const oldLoginStreak = S.loginStreak;
+      const oldDailyDay = S.dailyDay;
+      const oldLastDailyDate = S.lastDailyDate;
+
+      S = newState();
+
+      S.ascLevel = oldAscLevel + 1;
+      if (S.ascLevel >= 0) S.transcendPoints += Math.floor((S.ascLevel - 5) * 1.5);
+      S.ascPoints = oldAscPoints;
+      S.ascMultiplier = oldAscMultiplier;
+
+      S.achDone = oldAch;
+      S.loginStreak = oldLoginStreak;
+      S.dailyDay = oldDailyDay;
+      S.lastDailyDate = oldLastDailyDate;
+
+      recalcCps();
+
+      spawnParts(window.innerWidth / 2, window.innerHeight / 2, 120, '#ce82ff');
+      showEvent(`✨ ASCENDED to ${nextTier.name}! ×${S.ascMultiplier} permanent!`);
+      notify(`✨ Ascension ${S.ascLevel} complete! All upgrades reset!`);
+
+      checkAchievements();
+      renderAll();
+      updateUI();
+      saveGame();
+      switchTab('ascend');
+    }
+
+    function transcend() {
+      const tier = TRANSCEND_TIERS[S.transcendLevel];
+      if (!tier) { notify('🌌 You have truly transcended everything. There is nothing left to break.'); return; }
+      if (S.te < tier.reqTe) { notify(`Need ${fmt(tier.reqTe)} total bombos!`); return; }
+      if (S.transcendPoints < tier.cost) { notify(`Need ${tier.cost} Transcend Shards!`); return; }
+
+      if (!confirm(`🌌 TRANSCEND TO ${tier.name.toUpperCase()}?\n\n• Score, buildings, upgrades, shop, everything resets\n• You keep ALL Ascension progress + achievements + streak\n• Gain ×${tier.multGain} permanent multiplier\n\nThis is the true endgame.`)) return;
+
+      const oldTLevel = S.transcendLevel;
+      const oldTPoints = S.transcendPoints - tier.cost;
+      const oldTMult = S.transcendMultiplier || 1;
+      const oldAscLevel = S.ascLevel;
+      const oldAscMult = S.ascMultiplier;
+      const oldAch = { ...S.achDone };
+      const oldStreak = S.loginStreak;
+      const oldDailyDay = S.dailyDay;
+      const oldLastDaily = S.lastDailyDate;
+
+      S = newState();
+
+      S.transcendLevel = oldTLevel + 1;
+      S.transcendMultiplier = oldTMult * tier.multGain;
+      S.transcendPoints = oldTPoints;
+
+      S.ascLevel = oldAscLevel;
+      S.ascMultiplier = oldAscMult;
+      S.achDone = oldAch;
+      S.loginStreak = oldStreak;
+      S.dailyDay = oldDailyDay;
+      S.lastDailyDate = oldLastDaily;
+
+      recalcCps();
+      spawnParts(window.innerWidth / 2, window.innerHeight / 2, 200, '#ce82ff');
+      showEvent(`🌌 TRANSCENDED! ×${S.transcendMultiplier.toFixed(0)} forever!`);
+      notify(`🌌 Reality broken. New multiplier: ×${S.transcendMultiplier.toFixed(0)}`);
+
+      saveGame();
+      renderAll();
+      switchTab('transcend');
+    }
+
+    function updateChallengeProgress(type, value) {
+      CHALLENGE_DEFS.forEach(c => {
+        if (S.chalClaimed[c.id]) return;
+        let matches = c.type === type;
+        if (c.type === 'buy_id' && type === 'buy_id_' + (c.targetId || '')) matches = true;
+        if (!matches) return;
+        if (!S.chalStarted[c.id]) S.chalStarted[c.id] = Date.now();
+        const prev = S.chalProgress[c.id] || 0;
+        if (value > prev) S.chalProgress[c.id] = value;
+        const elapsed = (Date.now() - S.chalStarted[c.id]) / 1000;
+        if (elapsed > c.timeLimit) { S.chalProgress[c.id] = 0; S.chalStarted[c.id] = Date.now(); }
+      });
+      const anyDone = CHALLENGE_DEFS.some(c => !S.chalClaimed[c.id] && (S.chalProgress[c.id] || 0) >= c.goal);
+      document.getElementById('chal-badge').style.display = anyDone ? 'inline-block' : 'none';
+    }
+
+    function claimChallenge(id) {
+      const c = CHALLENGE_DEFS.find(x => x.id === id);
+      if (!c || S.chalClaimed[id]) return; if ((S.chalProgress[id] || 0) < c.goal) return;
+      S.chalClaimed[id] = true; addScore(c.reward); S.challengesDone++;
+      playGoldenSound(); spawnParts(window.innerWidth / 2, 300, 35, '#ffc800');
+      notify(`🏅 Challenge done! +${fmt(c.reward)} bombos!`);
+      checkAchievements(); updateUI(); document.getElementById('chal-badge').style.display = 'none';
+      renderChallenges(); saveGame();
+    }
+
+    function getChalTimeLeft(c) { if (!S.chalStarted[c.id]) return c.timeLimit; return Math.max(0, c.timeLimit - (Date.now() - S.chalStarted[c.id]) / 1000); }
+    function fmtTime(secs) { if (secs >= 3600) return `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`; if (secs >= 60) return `${Math.floor(secs / 60)}m ${Math.floor(secs % 60)}s`; return `${Math.floor(secs)}s`; }
+
+    function checkAchievements() {
+      ACHIEVEMENTS.forEach(a => {
+        if (!S.achDone[a.id] && a.check(S)) { S.achDone[a.id] = true; showAchPop(a); S.ascPoints++; }
+      });
+    }
+    let achPopT;
+    function showAchPop(a) {
+      document.getElementById('ap-ico').textContent = a.ico;
+      document.getElementById('ap-name').textContent = a.name;
+      document.getElementById('ap-desc').textContent = a.desc;
+      const el = document.getElementById('ach-pop'); el.classList.add('on');
+      clearTimeout(achPopT); achPopT = setTimeout(() => el.classList.remove('on'), 4500);
+      playGoldenSound();
+    }
+
+    function checkMilestones() {
+      MILESTONES.forEach(m => {
+        if (!S.milestones[m.id] && S.te >= m.target) {
+          S.milestones[m.id] = true; notify('🏁 Milestone: ' + m.label + ' bombos!'); renderMilestones();
+        }
+      });
+    }
+
+    function showOwl() {
+      document.getElementById('owl-msg').textContent = OWL_THREATS[Math.floor(Math.random() * OWL_THREATS.length)];
+      document.getElementById('owl').classList.add('on');
+      setTimeout(() => { document.getElementById('owl').classList.remove('on'); S.owlSurvived++; checkAchievements(); }, 5500);
+    }
+    function scheduleOwl() { setTimeout(() => { if (S.cps > 0 || S.tc > 5) { showOwl(); } scheduleOwl(); }, 80000 + Math.random() * 80000); }
+    scheduleOwl();
+
+    function spawnGolden() {
+      const types = ['🌟', '💰', '⚡', '🎁'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      const el = document.createElement('div'); el.className = 'golden'; el.textContent = type;
+      el.style.left = (7 + Math.random() * 78) + 'vw'; el.style.top = (12 + Math.random() * 65) + 'vh';
+      document.body.appendChild(el);
+      el.addEventListener('click', () => {
+        const base = Math.max(1000, (S.cps * 80 + getClickPow() * 150));
+        let bonus = Math.floor(base * (S.gM || 1) * (type === '💰' ? 3 : type === '⚡' ? 2 : 1));
+        if (S.goldenJackpot) bonus = Math.floor(100000 + Math.random() * 9900000);
+        addScore(bonus); S.gc++; S.chalSessionGolden++;
+        updateChallengeProgress('golden', S.chalSessionGolden);
+        notify(`${type} Golden Bombo! +${fmt(bonus)} bombos!`);
+        spawnParts(el.getBoundingClientRect().left, el.getBoundingClientRect().top, 40, '#ffd700');
+        playGoldenSound(); el.remove(); checkAchievements(); updateUI();
+      });
+      setTimeout(() => { if (el.parentNode) el.remove(); }, 9000);
+    }
+    function scheduleGolden() { const delay = S.ascLevel >= 1 ? 12000 : 20000; setTimeout(() => { spawnGolden(); scheduleGolden(); }, delay + Math.random() * 15000); }
+    scheduleGolden();
+
+    let lastT = Date.now(), autoAcc = 0, uiT = 0, chalT = 0;
+    setInterval(() => {
+      const now = Date.now(), dt = Math.min((now - lastT) / 1000, 0.5); lastT = now;
+      const warp = (now < twEnd) ? 10 : 1, earned = S.cps * dt * warp;
+      addScore(earned); S.chalSessionEarn += earned;
+      decayCombo(dt);
+      if (S.combo >= 5) { S.chalComboTimer = (S.chalComboTimer || 0) + dt; updateChallengeProgress('combo', S.chalComboTimer); } else { S.chalComboTimer = 0; }
+      autoAcc += S.ac * dt;
+      if (autoAcc >= 1) {
+        const n = Math.floor(autoAcc); autoAcc -= n;
+        let ap = getClickPow() * n * Math.min(S.combo, 3);
+        if (S.autoCrit && Math.random() < 0.05) ap *= (S.critM || 10);
+        addScore(ap); S.chalSessionEarn += ap;
+        if (n > 0) { mb.style.boxShadow = '0 0 0 var(--duo-green-dark),0 4px 16px rgba(88,204,2,0.6)'; setTimeout(() => mb.style.boxShadow = '', 75); }
+      }
+      updateTWBar();
+      uiT += dt;
+      if (uiT >= 0.15) {
+        uiT = 0; checkMilestones(); checkAchievements(); updateUI();
+        if (curTab === 'game') { renderBldFast(); renderUpgFast(); }
+        if (curTab === 'challenges') { chalT += 0.15; if (chalT >= 2) { chalT = 0; renderChallenges(); } }
+        if (curTab === 'stats') renderStats();
+        if (curTab === 'leaderboard') updateLbStatus();
+      }
+
+      autoSaveTimer += dt;
+      if (autoSaveTimer >= 8) {
+        saveGame();
+        autoSaveTimer = 0;
+      }
+    }, 50);
+
+    let curLbTab = 'all';
+    let lbCache = null;
+    async function submitScore() {
+      const name = document.getElementById('lb-inp').value.trim().slice(0, 16);
+      if (!name) { notify('Enter your name first!'); return; }
+      PERSIST.lbName = name;
+      const flair = S.ascLevel >= 7 ? '👑' : S.ascLevel >= 5 ? '🌈' : S.ascLevel >= 3 ? '💎' : S.ascLevel >= 1 ? '✨' : '🥁';
+      document.getElementById('lb-sub').textContent = 'Submitting…';
+      await submitToSharedLb(name, Math.floor(S.te), S.ascLevel, flair);
+      const local = getLocalLb();
+      const week = getWeekStr(), today = new Date().toDateString();
+      const entry = { name, score: Math.floor(S.te), asc: S.ascLevel, flair, week, day: today, ts: Date.now() };
+      const idx = local.findIndex(e => e.name === name);
+      if (idx >= 0) { if (entry.score > local[idx].score) local[idx] = entry; } else local.push(entry);
+      saveLocalLb(local);
+      S.lbSubmitted = true; checkAchievements();
+      notify('🏆 Score submitted to GLOBAL leaderboard!');
+      playGoldenSound();
+      document.getElementById('lb-sub').textContent = 'Submit 🥁';
+      lbCache = null;
+      await renderLeaderboard(); saveGame();
+    }
+    function switchLbTab(t) {
+      curLbTab = t;
+      document.querySelectorAll('.lbt').forEach(el => { el.classList.toggle('on', el.getAttribute('onclick').includes(`'${t}'`)); });
+      lbCache = null; renderLeaderboard();
+    }
+    async function updateLbStatus() {
+      const el = document.getElementById('lb-status'); if (!el) return;
+      try {
+        const lb = lbCache || await loadSharedLb();
+        el.textContent = `${lb.length} players worldwide • Live global leaderboard`;
+      } catch (e) { el.textContent = ''; }
+    }
+    async function renderLeaderboard() {
+      const list = document.getElementById('lb-list'); if (!list) return;
+      const myName = PERSIST.lbName || document.getElementById('lb-inp').value.trim();
+      if (myName) document.getElementById('lb-inp').value = myName;
+      list.innerHTML = '<div id="lb-loading">Loading global players…</div>';
+      try {
+        let entries = await loadSharedLb(); lbCache = entries;
+        const local = getLocalLb();
+        local.forEach(e => { if (!entries.find(x => x.name === e.name)) entries.push(e); });
+        const today = new Date().toDateString(), thisWeek = getWeekStr();
+        if (curLbTab === 'weekly') entries = entries.filter(e => e.week === thisWeek);
+        else if (curLbTab === 'daily') entries = entries.filter(e => e.day === today);
+        entries.sort((a, b) => b.score - a.score);
+        const top = entries.slice(0, 25);
+        if (!top.length) { list.innerHTML = `<div id="lb-empty">No scores yet! Be the first! 🥁</div>`; return; }
+        list.innerHTML = top.map((e, i) => {
+          const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+          const rankStr = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+          const isMe = e.name === myName;
+          const stars = e.asc > 0 ? '⭐'.repeat(Math.min(e.asc, 5)) : '';
+          return `<div class="lbr${isMe ? ' me' : ''}">
+            <div class="lbrank ${rankClass}">${rankStr}</div>
+            <div class="lbi">
+              <div class="lbname">${e.name} ${stars}</div>
+              <div class="lbscore">🥁 ${fmt(e.score)} bombos · Asc.${e.asc || 0}</div>
+            </div>
+            <div class="lbflair">${e.flair || '🥁'}</div>
+          </div>`;
+        }).join('');
+        updateLbStatus();
+      } catch (err) {
+        const local = getLocalLb();
+        if (!local.length) { list.innerHTML = `<div id="lb-empty">Submit your score to see the global leaderboard!</div>`; return; }
+        list.innerHTML = local.sort((a, b) => b.score - a.score).slice(0, 25).map((e, i) => {
+          const isMe = e.name === myName;
+          return `<div class="lbr${isMe ? ' me' : ''}">
+            <div class="lbrank ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''}">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i + 1)}</div>
+            <div class="lbi"><div class="lbname">${e.name}</div><div class="lbscore">🥁 ${fmt(e.score)}</div></div>
+            <div class="lbflair">${e.flair || '🥁'}</div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    function fmt(n) {
+      if (!isFinite(n) || n <= 0) return "0";
+
+      const suffixes = [
+        "", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No",
+        "Dc", "Ud", "Dd", "Td", "Qad", "Qid", "Sxd", "Spd",
+        "Ocd", "Nod", "Vg", "Uvg", "Dvg", "Tvg"
+      ];
+
+      if (n < 1000) return Math.floor(n).toLocaleString();
+
+      const tier = Math.floor(Math.log10(n) / 3);
+
+      if (tier >= suffixes.length) {
+        return n.toExponential(2).replace(/\+/g, '');
+      }
+
+      const scale = Math.pow(10, tier * 3);
+      const scaled = n / scale;
+
+      return scaled.toFixed(2) + suffixes[tier];
+    }
+
+    function renderUpgrades() {
+      const list = document.getElementById('upg-list');
+      if (!list) return;
+
+      list.innerHTML = '';
+      let boughtCount = 0;
+
+      UPGRADES.forEach(u => {
+        const done = !!S.bought[u.id];
+        if (done) boughtCount++;
+
+        let thisCost = Math.floor(u.cost * (S.upgDiscount || 1));
+
+        const unlocked = S.te >= u.req;
+        const afford = unlocked && S.score >= thisCost;
+
+        const div = document.createElement('div');
+        div.className = 'upg' +
+          (done ? ' ud' : '') +
+          (!done && !unlocked ? ' ul' : '') +
+          (!done && afford ? ' ca' : '');
+
+        div.innerHTML = `
+      <div class="ui">${u.ico}</div>
+      <div class="ut">
+        <div class="un">${u.name}</div>
+        <div class="ud2">${u.desc}</div>
+        ${!done ? `<div class="upr">🥁 ${fmt(thisCost)}${u.req > 0 && S.te < u.req ? ` · Need ${fmt(u.req)} earned` : ''}</div>` : ''}
+      </div>
+      ${done ? '<div class="uch">✓</div>' : ''}
+    `;
+
+        if (!done && unlocked) {
+          div.addEventListener('click', () => buyUpgrade(u.id));
+        }
+        list.appendChild(div);
+      });
+
+      document.getElementById('upg-count').textContent = `${boughtCount}/${UPGRADES.length}`;
+    }
+
+    function renderUpgFast() {
+      document.querySelectorAll('#upg-list .upg').forEach((div, i) => {
+        const u = UPGRADES[i];
+        if (!u || S.bought[u.id]) return;
+
+        let thisCost = Math.floor(u.cost * (S.upgDiscount || 1));
+        const afford = S.te >= u.req && S.score >= thisCost;
+        div.classList.toggle('ca', afford);
+      });
+    }
+
+
+    function renderBuildings() {
+      const list = document.getElementById('bld-list'); if (!list) return;
+      list.innerHTML = '';
+      const tb = totalBld(S); document.getElementById('total-bld').textContent = tb > 0 ? ` ${tb} owned` : '';
+      BUILDINGS.forEach(b => {
+        const cnt = S.buildings[b.id] || 0, cost = Math.floor(b.baseCost * Math.pow(1.15, cnt)), afford = S.score >= cost;
+        const cpsC = b.baseCps * cnt * (S.bm[b.id] || 1) * S.ascMultiplier * (S.sM || 1);
+        const locked = cnt === 0 && cost > S.te * 6 && !afford;
+        const emoji = b.name.match(/^\S+/)[0], label = b.name.replace(/^\S+\s*/, '');
+        const div = document.createElement('div');
+        div.className = 'bld' + (locked ? ' bl' : '') + (afford && !locked ? ' baf' : '');
+        div.dataset.bid = b.id;
+        div.innerHTML = `<div class="bic ${afford && !locked ? 'sh' : ''}">${emoji}</div>
+      <div class="bbody">
+        <div class="bn">${label}</div>
+        <div class="bi"><span class="bc">🥁${fmt(cost)}</span>${cnt > 0 ? ` · ${fmt(cpsC)}/s` : ` · ${b.desc}`}</div>
+      </div>
+      <div class="bcnt ${cnt > 0 ? 'hi' : ''}">${cnt || ''}</div>`;
+        if (!locked) div.addEventListener('click', () => buyBuilding(b.id));
+        list.appendChild(div);
+      });
+    }
+    function renderBldFast() {
+      document.querySelectorAll('#bld-list .bld').forEach((div, i) => {
+        const b = BUILDINGS[i]; if (!b) return;
+        const cnt = S.buildings[b.id] || 0, cost = Math.floor(b.baseCost * Math.pow(1.15, cnt)), afford = S.score >= cost;
+        div.classList.toggle('baf', afford && !div.classList.contains('bl'));
+        const cntEl = div.querySelector('.bcnt'); if (cntEl) { cntEl.textContent = cnt || ''; cntEl.className = 'bcnt' + (cnt > 0 ? ' hi' : ''); }
+        const costEl = div.querySelector('.bc'); if (costEl) costEl.textContent = '🥁' + fmt(cost);
+        const ico = div.querySelector('.bic'); if (ico) ico.classList.toggle('sh', afford && !div.classList.contains('bl'));
+      });
+    }
+
+    function renderMilestones() {
+      const row = document.getElementById('msr'); if (!row) return;
+      row.innerHTML = MILESTONES.map(m => `<div class="ms${S.milestones[m.id] ? ' done' : ''}">${m.label}</div>`).join('');
+    }
+
+    function renderAchievements() {
+      const grid = document.getElementById('ach-grid'); if (!grid) return;
+      const done = ACHIEVEMENTS.filter(a => S.achDone[a.id]).length;
+      document.getElementById('ach-count').textContent = `${done}/${ACHIEVEMENTS.length} unlocked · ${S.ascPoints} ✨ pts`;
+      grid.innerHTML = ACHIEVEMENTS.map(a => {
+        const un = !!S.achDone[a.id];
+        return `<div class="ac${un ? ' un' : ''}">
+      <span class="aic">${a.ico}</span>
+      <div class="an">${un ? a.name : '???'}</div>
+      <div class="ah">${un ? a.desc : 'Keep playing!'}</div>
+    </div>`;
+      }).join('');
+    }
+
+    function renderChallenges() {
+      const wrap = document.getElementById('chal-wrap'); if (!wrap) return;
+      const LEAGUES = { bronze: { ico: '🥉', name: 'Bronze', color: '#c07830' }, silver: { ico: '🥈', name: 'Silver', color: '#afafaf' }, gold: { ico: '🥇', name: 'Gold', color: '#e6a800' }, diamond: { ico: '💎', name: 'Diamond', color: '#1cb0f6' } };
+      const ligues = ['bronze', 'silver', 'gold', 'diamond'];
+      const totalDone = Object.keys(S.chalClaimed).length, totalAvail = CHALLENGE_DEFS.length;
+      const curLeagueIdx = Math.min(Math.floor(S.ascLevel * 1.5 + totalDone * 0.15), 3);
+      const L = LEAGUES[ligues[curLeagueIdx]];
+      const now = new Date(), midnight = new Date(now); midnight.setHours(24, 0, 0, 0);
+      const secsToReset = Math.floor((midnight - now) / 1000);
+      let html = `<div class="cpath-outer">
+  <div class="league-hdr">
+    <div class="league-hdr-ico">${L.ico}</div>
+    <div class="league-hdr-info">
+      <h2 style="color:${L.color}">${L.name} League</h2>
+      <p>${totalDone}/${totalAvail} challenges · Asc.${S.ascLevel} · ${S.ascPoints} ✨ pts</p>
+      <div class="league-progress">
+        <div class="lp-track"><div class="lp-fill" style="width:${(totalDone / totalAvail * 100).toFixed(0)}%"></div></div>
+        <span class="lp-txt">${totalDone}/${totalAvail}</span>
+      </div>
+    </div>
+  </div>
+  <div class="daily-reset">⏰ Daily challenges reset in: ${fmtTime(secsToReset)}</div>
+  <div class="cpath">`;
+      const sections = {};
+      CHALLENGE_DEFS.forEach(c => { const sec = c.section || 'Other'; if (!sections[sec]) sections[sec] = []; sections[sec].push(c); });
+      Object.entries(sections).forEach(([secName, challenges]) => {
+        const CL = LEAGUES[challenges[0].league];
+        html += `<div class="chal-section-hdr"><span style="color:${CL.color}">${CL.ico} ${secName}</span><em>${challenges.filter(c => S.chalClaimed[c.id]).length}/${challenges.length} done</em></div>`;
+        challenges.forEach(c => {
+          const prog = S.chalProgress[c.id] || 0, claimed = !!S.chalClaimed[c.id], complete = prog >= c.goal;
+          const leagueIdx = ligues.indexOf(c.league), unlocked = leagueIdx <= curLeagueIdx + 1 || S.ascLevel >= leagueIdx;
+          const pct = Math.min(100, (prog / c.goal) * 100), timeLeft = getChalTimeLeft(c), urgent = timeLeft < 300 && !claimed && S.chalStarted[c.id];
+          let statusClass = claimed ? 'c-done' : (complete ? 'c-active' : (!unlocked ? 'c-locked' : 'c-active'));
+          let timerHtml = claimed ? `<span class="ctimer done">✓ Complete</span>` : (!S.chalStarted[c.id] ? `<span class="ctimer ok">⏱ ${fmtTime(c.timeLimit)} limit</span>` : `<span class="ctimer ${urgent ? 'urgent' : 'ok'}">⏱ ${fmtTime(timeLeft)}</span>`);
+          html += `<div class="ccard ${statusClass}">
+        <div class="ccard-top">
+          <div class="ccard-ico">${c.ico}</div>
+          <div class="ccard-info">
+            <div class="cname">${c.name} <span style="font-size:11px;color:${LEAGUES[c.league].color}">${LEAGUES[c.league].ico}</span></div>
+            <div class="cdesc">${c.desc}</div>
+            <div class="creward">🥁 +${fmt(c.reward)} reward</div>
+            ${timerHtml}
+          </div>
+        </div>
+        ${!claimed ? `<div class="cprog-wrap"><div class="cprog ${complete ? 'full' : ''}" style="width:${pct}%"></div></div>
+        <div class="cpct">${fmt(prog)} / ${fmt(c.goal)} (${pct.toFixed(0)}%)</div>` : ''}
+        ${complete && !claimed ? `<button class="claim-btn" onclick="claimChallenge('${c.id}')">🎁 Claim +${fmt(c.reward)}</button>` : ''}
+        ${claimed ? `<div class="claimed-lbl">✓ Claimed!</div>` : ''}
+      </div>`;
+        });
+      });
+      html += '</div></div>'; wrap.innerHTML = html;
+    }
+
+    function renderShop() {
+      const list = document.getElementById('shop-list'); if (!list) return;
+      list.innerHTML = SHOP_ITEMS.map(item => {
+        const bought = !item.reuse && S.shopBought.includes(item.id), unlocked = S.te >= item.req;
+        return `<div class="si ${!unlocked ? 'sil' : ''} ${bought ? 'sib' : ''}" onclick="${!bought && unlocked ? `buyShopItem('${item.id}')` : ''}" >
+      <div class="si-i">${item.ico}</div>
+      <div class="si-b">
+        <div class="si-n">${item.name}${item.reuse ? '<span class="si-reuse">REUSABLE</span>' : ''}</div>
+        <div class="si-d">${item.desc}</div>
+        ${!bought ? `<div class="si-c">🥁 ${fmt(item.cost)}${!unlocked ? ' · Requires ' + fmt(item.req) + ' earned' : ''}</div>` : ''}
+        ${bought ? '<div class="si-bt">✓ Owned</div>' : ''}
+      </div>
+    </div>`;
+      }).join('');
+    }
+
+    function renderAscendPage() {
+      const inner = document.getElementById('asc-page-inner'); if (!inner) return;
+      const achDone = Object.keys(S.achDone).length;
+      const directMults = [1, 1.5, 3.75, 15, 105, 1260, 25200, 126000, 25200000];
+      inner.innerHTML = `
+  <div class="asc-points-card">
+    <div class="asc-points-val">${S.ascPoints} ✨</div>
+    <div class="asc-points-lbl">Ascension Points · Unlock achievements to earn them</div>
+    <div style="font-size:12px;color:var(--duo-gray-300);margin-top:6px;font-weight:600">${achDone}/${ACHIEVEMENTS.length} achievements unlocked</div>
+  </div>
+  <div style="font-size:14px;font-weight:900;color:var(--duo-gray-900);margin-bottom:12px">✨ Ascension Tiers</div>
+  ${ASCEND_TIERS.map((tier, i) => {
+        const owned = i < S.ascLevel, isCurrent = i === S.ascLevel, canBuy = isCurrent && S.te >= tier.req && S.ascPoints >= tier.cost;
+        return `<div class="asc-tier ${isCurrent ? 'at-cur' : ''}">
+      <div class="asc-tier-hdr">
+        <div class="asc-tier-ico">${tier.ico}</div>
+        <div>
+          <div class="asc-tier-name" style="color:${owned ? 'var(--duo-green)' : isCurrent ? 'var(--duo-purple-dark)' : 'var(--duo-gray-300)'}">${tier.name} ${owned ? '✓' : isCurrent ? '← Current' : ''}</div>
+          <div style="font-size:11px;color:var(--duo-gray-300);font-weight:700">Cost: ${tier.cost} ✨ · Bonus: ×${(directMults[i + 1] || directMults[directMults.length - 1]).toFixed(0)} · Need: ${fmt(tier.req)}</div>
+        </div>
+      </div>
+      <div class="asc-tier-desc">${tier.desc}</div>
+      ${tier.perks.map(p => `<div class="asc-perk${owned ? ' owned' : ''}"><span class="asc-perk-ico">${owned ? '✅' : '⭐'}</span><span>${p}</span></div>`).join('')}
+      ${isCurrent ? `<div class="asc-cost">${S.ascPoints >= tier.cost ? '✅' : '❌'} ${S.ascPoints}/${tier.cost} ✨ &nbsp; ${S.te >= tier.req ? '✅' : '❌'} ${fmt(S.te)}/${fmt(tier.req)} bombos</div>
+      <button class="buy-asc" onclick="ascend()" ${canBuy ? '' : 'disabled'}>${canBuy ? '✨ Ascend Now!' : 'Keep playing…'}</button>` : ''}
+      ${owned ? `<div class="owned-asc">✓ Ascended</div>` : ''}
+    </div>`;
+      }).join('')}
+  <div class="duo-card" style="margin-top:10px">
+    <div style="font-weight:900;font-size:14px;margin-bottom:8px">💡 How Ascension Works</div>
+    <div style="font-size:12px;color:var(--duo-gray-400);line-height:1.8;font-weight:600">
+      • Earn <b style="color:var(--duo-purple-dark)">Ascension Points ✨</b> by unlocking achievements<br>
+      • Meet the bombo requirement, spend points, then <b style="color:var(--duo-green)">Ascend Now!</b><br>
+      • Your score resets but you keep a <b>permanent multiplier</b><br>
+      • Achievements, ascension level, and streak are always kept
+    </div>
+  </div>`;
+    }
+
+
+    function renderTranscendPage() {
+      const inner = document.getElementById('transcend-page-inner');
+      let html = `
+    <div class="asc-points-card">
+      <div class="asc-points-val">${S.transcendPoints} 🌌</div>
+      <div class="asc-points-lbl">Transcend Shards • Earned by ascending many times</div>
+    </div>
+    <div style="font-size:14px;font-weight:900;color:var(--duo-gray-900);margin:20px 0 12px">🌌 Transcend Tiers</div>
+  `;
+
+      TRANSCEND_TIERS.forEach((tier, i) => {
+        const owned = i < S.transcendLevel;
+        const current = i === S.transcendLevel;
+        const can = current && S.te >= tier.reqTe && S.transcendPoints >= tier.cost;
+
+        html += `
+      <div class="asc-tier ${current ? 'at-cur' : ''}">
+        <div class="asc-tier-hdr">
+          <div class="asc-tier-ico">${tier.ico}</div>
+          <div>
+            <div class="asc-tier-name" style="color:${owned ? 'var(--duo-green)' : current ? 'var(--duo-purple-dark)' : 'var(--duo-gray-300)'}">${tier.name} ${owned ? '✓' : current ? '← NOW' : ''}</div>
+            <div style="font-size:11px;color:var(--duo-gray-300);font-weight:700">Cost: ${tier.cost} 🌌 • Need: ${fmt(tier.reqTe)} total</div>
+          </div>
+        </div>
+        <div class="asc-tier-desc">${tier.desc}</div>
+        ${tier.perks.map(p => `<div class="asc-perk${owned ? ' owned' : ''}"><span class="asc-perk-ico">${owned ? '✅' : '🌌'}</span><span>${p}</span></div>`).join('')}
+        ${current ? `<div class="asc-cost">${S.transcendPoints >= tier.cost ? '✅' : '❌'} ${S.transcendPoints}/${tier.cost} 🌌 &nbsp; ${S.te >= tier.reqTe ? '✅' : '❌'} ${fmt(S.te)}/${fmt(tier.reqTe)}</div>
+        <button class="buy-asc" onclick="transcend()" ${can ? '' : 'disabled'}>🌌 TRANSCEND NOW!</button>` : ''}
+        ${owned ? `<div class="owned-asc">✓ Transcended</div>` : ''}
+      </div>`;
+      });
+
+      inner.innerHTML = html;
+    }
+
+
+    function renderStats() {
+      const grid = document.getElementById('stats-grid'); if (!grid) return;
+      const elapsed = Math.floor((Date.now() - S.sessionStart) / 1000);
+      const m = Math.floor(elapsed / 60), sec = elapsed % 60;
+      const data = [
+        { l: 'Total Earned', v: fmt(S.te), s: 'All time' },
+        { l: 'Current Score', v: fmt(S.score), s: 'Spendable' },
+        { l: 'Per Second', v: fmt(S.cps), s: 'Passive CPS' },
+        { l: 'Per Click', v: fmt(getClickPow()), s: 'Base power' },
+        { l: 'Total Clicks', v: S.tc.toLocaleString(), s: 'All time' },
+        { l: 'Auto Clicks/s', v: S.ac, s: 'Automatic' },
+        { l: 'Ascension', v: S.ascLevel, s: `×${S.ascMultiplier.toFixed(0)} bonus` },
+        { l: 'Max Combo', v: `×${S.maxCombo.toFixed(1)}`, s: 'Best ever' },
+        { l: 'Golden Caught', v: S.gc, s: 'Golden Bombos' },
+        { l: 'Crits Landed', v: S.crits, s: 'Critical hits' },
+        { l: 'Achievements', v: `${Object.keys(S.achDone).length}/${ACHIEVEMENTS.length}`, s: 'Unlocked' },
+        { l: 'Login Streak', v: `${S.loginStreak} days`, s: 'Daily login' },
+        { l: 'Challenges', v: S.challengesDone, s: 'Completed' },
+        { l: 'Session Time', v: `${m}m ${sec}s`, s: 'This session' },
+        { l: 'Buildings', v: totalBld(S), s: 'Owned' },
+        { l: 'Asc. Points', v: S.ascPoints, s: '✨ Unspent' },
+      ];
+      grid.innerHTML = data.map(x => `<div class="sc"><div class="scl">${x.l}</div><div class="scv">${x.v}</div><div class="scs">${x.s}</div></div>`).join('');
+    }
+
+    function updateUI() {
+      document.getElementById('big-score').textContent = fmt(S.score);
+      document.getElementById('cps-ln').textContent = fmt(S.cps) + ' per second';
+      document.getElementById('s-click').textContent = fmt(getClickPow());
+      document.getElementById('s-cps').textContent = fmt(S.cps);
+      document.getElementById('s-str').textContent = `×${S.combo.toFixed(1)}`;
+      document.getElementById('s-asc').textContent = `Asc.${S.ascLevel}`;
+      document.getElementById('h-score').textContent = fmt(S.te);
+      document.getElementById('h-cps').textContent = fmt(S.cps);
+      document.getElementById('h-combo').textContent = `×${S.combo.toFixed(1)}`;
+      document.getElementById('h-asc').textContent = S.ascLevel;
+      if (S.ascLevel > 0) document.getElementById('h-asc-pill').style.display = 'flex';
+      if (S.te >= 1e6) {
+        document.getElementById('asc-btn').style.display = 'block';
+        document.getElementById('asc-info').style.display = 'block';
+        document.getElementById('asc-info').textContent = `${S.ascPoints} ✨ pts · Level ${S.ascLevel}`;
+      }
+      const next = MILESTONES.find(m => !S.milestones[m.id]);
+      if (!next) { document.getElementById('xpb').style.width = '100%'; document.getElementById('xplbl').textContent = 'All milestones done! 🏆'; }
+      else {
+        const prev = MILESTONES[MILESTONES.indexOf(next) - 1], from = prev ? prev.target : 0;
+        const pct = Math.min(100, ((S.te - from) / (next.target - from)) * 100);
+        document.getElementById('xpb').style.width = pct + '%';
+        document.getElementById('xplbl').textContent = `Next: ${next.label} bombos`;
+      }
+    }
+
+    let curTab = 'game';
+    function switchTab(t) {
+      curTab = t;
+      document.querySelectorAll('.tab').forEach(el => el.classList.toggle('on', el.dataset.t === t));
+      document.querySelectorAll('.tp').forEach(el => el.classList.toggle('ap', el.id === 'page-' + t));
+      document.getElementById('lp').style.visibility = t === 'game' ? 'visible' : 'hidden';
+      document.getElementById('rp').style.visibility = t === 'game' ? 'visible' : 'hidden';
+      if (t === 'achievements') renderAchievements();
+      if (t === 'challenges') renderChallenges();
+      if (t === 'leaderboard') { renderLeaderboard(); updateLbStatus(); }
+      if (t === 'stats') renderStats();
+      if (t === 'shop') renderShop();
+      if (t === 'ascend') renderAscendPage();
+      if (t === 'transcend') renderTranscendPage();
+    }
+
+    let notifT;
+    function notify(msg) { const el = document.getElementById('notif'); el.textContent = msg; el.classList.add('on'); clearTimeout(notifT); notifT = setTimeout(() => el.classList.remove('on'), 3000); }
+    let evtT;
+    function showEvent(msg) { const el = document.getElementById('evt-banner'); el.textContent = msg; el.classList.add('on'); clearTimeout(evtT); evtT = setTimeout(() => el.classList.remove('on'), 5500); }
+
+    const cvs = document.getElementById('fx'), ctx = cvs.getContext('2d');
+    function resizeCvs() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
+    resizeCvs(); window.addEventListener('resize', resizeCvs);
+    const parts = [];
+    function spawnParts(x, y, n = 10, col = null) {
+      const cols = ['#58cc02', '#ffc800', '#1cb0f6', '#ff4b4b', '#ff9600', '#ce82ff'];
+      for (let i = 0; i < n; i++)parts.push({ x, y, vx: (Math.random() - .5) * 9, vy: (Math.random() - .5) * 9 - 2, life: 1, decay: .024 + Math.random() * .04, r: 2 + Math.random() * 5, c: col || cols[Math.floor(Math.random() * cols.length)] });
+    }
+    (function loop() {
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i]; p.x += p.vx; p.y += p.vy; p.vy += .28; p.life -= p.decay;
+        if (p.life <= 0) { parts.splice(i, 1); continue; }
+        ctx.globalAlpha = p.life; ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1; requestAnimationFrame(loop);
+    })();
+    function spawnFloat(x, y, text, color, big = false) {
+      const el = document.createElement('div'); el.className = 'ftxt' + (big ? ' crit' : '');
+      el.style.color = color; el.style.left = (x - 22 + (Math.random() * 36 - 18)) + 'px'; el.style.top = (y - 30) + 'px';
+      el.textContent = text; document.body.appendChild(el); setTimeout(() => el.remove(), 1100);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+        e.preventDefault(); const r = mb.getBoundingClientRect(); handleClick(r.left + r.width / 2, r.top + r.height / 2);
+      }
+    });
+    let lastClickTime = Date.now();
+    document.addEventListener('click', () => lastClickTime = Date.now());
+    setInterval(() => {
+      const idle = (Date.now() - lastClickTime) / 1000;
+      if (idle > 120 && idle < 125 && S.cps > 0) notify(`💤 Idle! Your buildings earned ${fmt(S.cps * idle)} bombos!`);
+    }, 5000);
+
+    function renderAll() {
+      renderUpgrades(); renderBuildings(); renderMilestones(); renderAchievements();
+      renderChallenges(); renderShop(); renderAscendPage(); renderLeaderboard(); renderTranscendPage();
+    }
+
+    loadGame(); recalcCps(); renderAll(); updateUI();
+    initFirebase();
+    setTimeout(() => {
+      notify('have fun sigam');
+      renderLeaderboard();
+    }, 800);
+  </script>
 </body>
+
 </html>
