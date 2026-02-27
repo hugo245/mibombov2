@@ -2496,8 +2496,8 @@
       const d = new Date(), day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1);
       return new Date(new Date(d).setDate(diff)).toDateString();
     }
-    function getLocalLb() { try { return JSON.parse(localStorage.getItem('mbc_lb') || '[]'); } catch (e) { return []; } }
-    function saveLocalLb(lb) { try { localStorage.setItem('mbc_lb', JSON.stringify(lb.slice(0, 50))); } catch (e) { } }
+    function getLocalLb() { try { return JSON.parse(localStorage.getItem('mbc_lb_v2') || '[]'); } catch (e) { return []; } }
+    function saveLocalLb(lb) { try { localStorage.setItem('mbc_lb_v2', JSON.stringify(lb.slice(0, 50))); } catch (e) { } }
 
     const newState = () => ({
       score: 0, te: 0, tc: 0, cm: 1, ac: 0, gt: false, gb: 0.03, critM: 10, critChance: 0.05,
@@ -2543,8 +2543,8 @@
         // Validate JSON strings before writing (catches truncation/corruption risk)
         JSON.parse(persistStr);
         JSON.parse(stateStr);
-        localStorage.setItem('mbc_persist', persistStr);
-        localStorage.setItem('mbc_state', stateStr);
+        localStorage.setItem('mbc_persist_v2', persistStr);
+        localStorage.setItem('mbc_state_v2', stateStr);
       } catch (e) {
         console.warn('Save failed:', e);
       }
@@ -2557,13 +2557,13 @@
     function loadGame() {
       // FIX: Better error handling for corrupted persist data
       try {
-        const rp = localStorage.getItem('mbc_persist');
+        const rp = localStorage.getItem('mbc_persist_v2');
         if (rp) {
           try {
             PERSIST = Object.assign(PERSIST, JSON.parse(rp));
           } catch (parseErr) {
             console.warn('Persist data corrupted, clearing:', parseErr);
-            localStorage.removeItem('mbc_persist');
+            localStorage.removeItem('mbc_persist_v2');
           }
         }
       } catch (e) { }
@@ -2573,7 +2573,7 @@
       let savedLastSave = Date.now();
 
       try {
-        const rs = localStorage.getItem('mbc_state');
+        const rs = localStorage.getItem('mbc_state_v2');
         if (!rs) return;
 
         // FIX: Separate JSON parse with its own try/catch so corruption clears the save
@@ -2582,7 +2582,7 @@
           sv = JSON.parse(rs);
         } catch (parseErr) {
           console.warn('State data corrupted, clearing save:', parseErr);
-          localStorage.removeItem('mbc_state');
+          localStorage.removeItem('mbc_state_v2');
           return;
         }
 
@@ -2621,8 +2621,8 @@
       BUILDINGS.forEach(b => { if (!(b.id in S.buildings)) S.buildings[b.id] = 0; if (!(b.id in S.bm)) S.bm[b.id] = 1; });
 
       // Apply upgrades AFTER capturing savedRawCps - these boost S.cps but we don't use it for offline
-      UPGRADES.forEach(u => { if (S.bought[u.id]) u.apply(S); });
-      SHOP_ITEMS.forEach(item => { if (!item.reuse && S.shopBought.includes(item.id) && item.id !== 's2' && item.id !== 's8') item.apply(S); });
+      // UPGRADES.forEach(u => { if (S.bought[u.id]) u.apply(S); });
+      // SHOP_ITEMS.forEach(item => { if (!item.reuse && S.shopBought.includes(item.id) && item.id !== 's2' && item.id !== 's8') item.apply(S); });
 
       recalcCps();
       checkLoginStreak();
@@ -2656,8 +2656,8 @@
       recalcCps();
       notify('🗑️ Full Hard Reset! Upgrades + buildings + everything non-ascension cleared.');
 
-      localStorage.setItem('mbc_persist', JSON.stringify(PERSIST));
-      localStorage.removeItem('mbc_state');
+      localStorage.setItem('mbc_persist_v2', JSON.stringify(PERSIST));
+      localStorage.removeItem('mbc_state_v2');
 
       renderAll();
       updateUI();
@@ -2886,7 +2886,7 @@
       S = newState();
 
       S.ascLevel = oldAscLevel + 1;
-      if (S.ascLevel >= 6) S.transcendPoints += Math.floor((S.ascLevel - 5) * 1.5);
+      if (S.ascLevel >= 0) S.transcendPoints += Math.floor((S.ascLevel - 5) * 1.5);
       S.ascPoints = oldAscPoints;
       S.ascMultiplier = oldAscMultiplier;
 
